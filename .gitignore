@@ -1,0 +1,4 @@
+node_modules/
+repositories/
+backup_repositories/
+npm-debug.log
