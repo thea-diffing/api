@@ -37,12 +37,14 @@
     "grunt-open": "~0.2.0",
     "jscs": "^1.11.3",
     "jshint": "^2.6.3",
+    "mocha": "^2.1.0",
     "open": "~0.0.4"
   },
   "engines": {
     "node": ">=0.10.0"
   },
   "scripts": {
-    "start": "grunt serve"
+    "start": "grunt serve",
+    "test": "mocha --color"
   }
 }

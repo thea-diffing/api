@@ -1,7 +1,6 @@
 'use strict';
 
-var api = require('./controllers/api'),
-    index = require('./controllers');
+var api = require('./controllers/api');
 
 /**
  * Application routes
@@ -34,6 +33,7 @@ module.exports = function(app) {
   - build id
   - sha (40 chars)
   - browser name
+  - images (a tar of the images)
   Response:
   {
       status: "success"

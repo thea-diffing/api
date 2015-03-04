@@ -1,32 +1,62 @@
 'use strict';
 
-/**
- * Using Rails-like standard naming convention for endpoints.
- * GET   /api/repositories                     ->  getDirectoryList
- * GET   /api/repositories/:file               ->  downloadRepository
- * GET   /api/repositories/:project/:file      ->  getImage
- * GET   /api/repositories/:project/diff/:diff ->  getImage
- * POST  /api/repositories/confirm             ->  acceptDiff
- * POST  /api/repositories/*                   ->  syncImages
- */
+var fs = require('fs-extra');
+var path = require('path');
 
-var fs = require('fs-extra'),
-    path = require('path'),
-    glob = require('glob'),
+var glob = require('glob'),
     targz = require('tar.gz'),
     async = require('async'),
     readDir = require('../utils/readDir'),
-    // imageRepo = path.join(__dirname, '..', '..', '..', 'repositories');
-    imageRepo = path.join(__dirname, '..', '..', 'repositories'),
     mainBranch = 'master',
     resemble = require('node-resemble-js');
+
+var storage = require('../utils/storage');
+
+function Api() {
+  storage.init();
+}
+
+Api.prototype = {
+  startBuild: function(req, res) {
+    var params = req.body;
+
+    var head = params.head;
+    var base = params.base;
+    var numBrowsers = params.numBrowsers;
+
+    if (!head || !base || !numBrowsers) {
+      res.status(400).send({
+        status: 'failure',
+        message: 'invalid arguments'
+      });
+    }
+
+    storage.startBuild({
+      head: head,
+      base: base,
+      numBrowsers: numBrowsers
+    })
+    .then(function(result) {
+
+    })
+    .catch(function() {
+      res.status(500).send({
+        status: 'failure',
+        message: 'error starting build'
+      });
+    });
+  }
+};
+
+module.exports = new Api();
+
+return;
 
 exports.syncImages = function(req, res) {
 
   if (!req.files || !req.body.branchName) {
     return res.send(500);
   }
-
 
   // We don't want to allow sub-folders
   var branchName = req.body.branchName.replace('/', '-');
