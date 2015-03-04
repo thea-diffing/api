@@ -12,145 +12,145 @@ function ReadDir() {
 }
 
 ReadDir.prototype = {
-    // readDir: function (start, callback) {
+  // readDir: function (start, callback) {
 
-    //     var processed = 0,
-    //         projectCnt = 0,
-    //         files = {
-    //             gz: [],
-    //             repositories: {}
-    //         };
+  //     var processed = 0,
+  //         projectCnt = 0,
+  //         files = {
+  //             gz: [],
+  //             repositories: {}
+  //         };
 
-    //     // Use lstat to resolve symlink if we are passed a symlink
-    //     fs.lstat(start, function(err, stat) {
+  //     // Use lstat to resolve symlink if we are passed a symlink
+  //     fs.lstat(start, function(err, stat) {
 
-    //         if(err) {
-    //             return callback(err);
-    //         }
+  //         if(err) {
+  //             return callback(err);
+  //         }
 
-    //         if(stat.isDirectory()) {
+  //         if(stat.isDirectory()) {
 
-    //             listDirectory(start, function(err,structure) {
+  //             listDirectory(start, function(err,structure) {
 
-    //                 if(structure.directories.length === 0) {
-    //                     callback(null, {
-    //                         repositories: []
-    //                     });
-    //                 }
+  //                 if(structure.directories.length === 0) {
+  //                     callback(null, {
+  //                         repositories: []
+  //                     });
+  //                 }
 
-    //                 structure.files = structure.files.filter(function(file) {
-    //                     if(file[0] === '.') {
-    //                         return false;
-    //                     }
+  //                 structure.files = structure.files.filter(function(file) {
+  //                     if(file[0] === '.') {
+  //                         return false;
+  //                     }
 
-    //                     return true;
-    //                 });
+  //                     return true;
+  //                 });
 
-    //                 files.gz = structure.files;
-    //                 projectCnt = structure.directories.length;
-    //                 structure.directories.forEach(function(dir) {
+  //                 files.gz = structure.files;
+  //                 projectCnt = structure.directories.length;
+  //                 structure.directories.forEach(function(dir) {
 
-    //                     files.repositories[dir] = {
-    //                         images: [],
-    //                         diffs: []
-    //                     };
+  //                     files.repositories[dir] = {
+  //                         images: [],
+  //                         diffs: []
+  //                     };
 
-    //                     // get project directory
-    //                     listDirectory(path.join(start,dir), function(err,structure) {
+  //                     // get project directory
+  //                     listDirectory(path.join(start,dir), function(err,structure) {
 
-    //                         // save regression images
-    //                         files.repositories[dir].images = structure.files;
+  //                         // save regression images
+  //                         files.repositories[dir].images = structure.files;
 
-    //                         // get diffs
-    //                         listDirectory(path.join(start,dir,'diff'), function(err,structure) {
+  //                         // get diffs
+  //                         listDirectory(path.join(start,dir,'diff'), function(err,structure) {
 
-    //                             files.repositories[dir].diffs = structure.files;
+  //                             files.repositories[dir].diffs = structure.files;
 
-    //                             if(++processed === projectCnt) {
-    //                                 callback(null,files);
-    //                             }
-    //                         });
+  //                             if(++processed === projectCnt) {
+  //                                 callback(null,files);
+  //                             }
+  //                         });
 
-    //                     });
-    //                 });
-    //             });
+  //                     });
+  //                 });
+  //             });
 
-    //         } else {
-    //             return callback(new Error('path: ' + start + ' is not a directory'));
-    //         }
-    //     });
-    // },
+  //         } else {
+  //             return callback(new Error('path: ' + start + ' is not a directory'));
+  //         }
+  //     });
+  // },
 
-    listDirectory: function (start, cb) {
+  listDirectory: function(start, cb) {
 
-        var processed = 0,
+    var processed = 0,
             ret = {
-            files: [],
-            directories: []
-        };
+              files: [],
+              directories: []
+            };
 
-        fs.readdir(start, function(err, files) {
+    fs.readdir(start, function(err, files) {
 
-            if(err) {
-                return cb(err);
-            }
+      if (err) {
+        return cb(err);
+      }
 
-            if(files.length === 0) {
-                cb(null,ret);
-            }
+      if (files.length === 0) {
+        cb(null,ret);
+      }
 
-            files.forEach(function(file) {
-                var abspath = path.join(start,file);
-                fs.stat(abspath,function(err,stat) {
+      files.forEach(function(file) {
+        var abspath = path.join(start,file);
+        fs.stat(abspath,function(err,stat) {
 
-                    if(err) {
-                        return cb(err);
-                    }
+          if (err) {
+            return cb(err);
+          }
 
-                    if(stat.isDirectory()) {
-                        ret.directories.push(file);
-                    } else {
-                        ret.files.push(file);
-                    }
+          if (stat.isDirectory()) {
+            ret.directories.push(file);
+          } else {
+            ret.files.push(file);
+          }
 
-                    if(++processed === files.length) {
-                        cb(null,ret);
-                    }
+          if (++processed === files.length) {
+            cb(null,ret);
+          }
 
-                });
-            });
         });
-    },
+      });
+    });
+  },
 
-    getImagesInBranch: function(start, cb) {
-        var ret = {
-            browsers: [],
-            files: []
-        };
+  getImagesInBranch: function(start, cb) {
+    var ret = {
+      browsers: [],
+      files: []
+    };
 
-        this.listDirectory(start, (function(err, dir) {
-            if (err) {
-                cb(err, null);
-            }
+    this.listDirectory(start, (function(err, dir) {
+      if (err) {
+        cb(err, null);
+      }
 
-            var browsers = dir.directories;
-            ret.browsers = browsers;
+      var browsers = dir.directories;
+      ret.browsers = browsers;
 
-            var browser = browsers[0];
-            var browserPath = path.join(start, browser);
+      var browser = browsers[0];
+      var browserPath = path.join(start, browser);
 
-            this.listDirectory(browserPath, function(err, dir) {
-                if (err) {
-                    cb(err, null);
-                }
+      this.listDirectory(browserPath, function(err, dir) {
+        if (err) {
+          cb(err, null);
+        }
 
-                ret.files = dir.files.filter(function(fileName) {
-                    return fileName.split('.').length > 3;
-                });
-                cb(null, ret);
-            });
-        }).bind(this));
-    }
+        ret.files = dir.files.filter(function(fileName) {
+          return fileName.split('.').length > 3;
+        });
+        cb(null, ret);
+      });
+    }).bind(this));
+  }
 };
 
 module.exports = new ReadDir();

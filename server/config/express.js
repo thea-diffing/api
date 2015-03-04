@@ -15,37 +15,37 @@ var express = require('express'),
  * Express configuration
  */
 module.exports = function(app) {
-    var env = app.get('env');
+  var env = app.get('env');
 
-    if ('development' === env) {
-        app.use(require('connect-livereload')());
+  if ('development' === env) {
+    app.use(require('connect-livereload')());
 
-        // Disable caching of scripts for easier testing
-        app.use(function noCache(req, res, next) {
-            if (req.url.indexOf('/js/') === 0) {
-                res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-                res.header('Pragma', 'no-cache');
-                res.header('Expires', 0);
-            }
-            next();
-        });
+    // Disable caching of scripts for easier testing
+    app.use(function noCache(req, res, next) {
+      if (req.url.indexOf('/js/') === 0) {
+        res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.header('Pragma', 'no-cache');
+        res.header('Expires', 0);
+      }
+      next();
+    });
 
-        app.use(express.static(path.join(config.root, 'dist')));
-    }
+    app.use(express.static(path.join(config.root, 'dist')));
+  }
 
-    if ('production' === env) {
-        app.use(compression());
-        app.use(favicon(path.join(config.root, 'dist', 'favicon.ico')));
-        app.use(express.static(path.join(config.root, 'dist')));
-    }
+  if ('production' === env) {
+    app.use(compression());
+    app.use(favicon(path.join(config.root, 'dist', 'favicon.ico')));
+    app.use(express.static(path.join(config.root, 'dist')));
+  }
 
-    app.use(morgan('dev'));
-    app.use(bodyParser());
-    app.use(multipart());
-    app.use(methodOverride());
+  app.use(morgan('dev'));
+  app.use(bodyParser());
+  app.use(multipart());
+  app.use(methodOverride());
 
-    // Error handler - has to be last
-    if ('development' === app.get('env')) {
-        app.use(errorHandler());
-    }
+  // Error handler - has to be last
+  if ('development' === app.get('env')) {
+    app.use(errorHandler());
+  }
 };
