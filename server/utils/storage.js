@@ -7,12 +7,13 @@ var uuid = require('node-uuid');
 
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
-var buildsPath = path.join(root, 'builds');
+var buildsPath = path.join(dataPath, 'builds');
+var shasPath = path.join(dataPath, 'shas');
 
 var Storage = {
   init: function() {
-    fs.ensureDirSync(dataPath);
     fs.ensureDirSync(buildsPath);
+    fs.ensureDirSync(shasPath);
   },
 
   startBuild: function(options) {
