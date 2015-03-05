@@ -1,7 +1,5 @@
 'use strict';
 
-var assert = require('assert');
-
 describe('Api', function() {
   describe('startBuild', function() {
     it('returns the biggest number from the arguments', function() {

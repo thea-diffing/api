@@ -1,7 +1,7 @@
 'use strict';
 
 var bluebird = require('bluebird');
-var assert = require('assert');
+
 var path = require('path');
 var mockFs = require('mock-fs');
 var fs = bluebird.promisifyAll(require('fs-extra'));
@@ -16,48 +16,61 @@ describe('Storage', function() {
   });
 
   describe('startBuild', function() {
+    var buildOptions;
+
+    beforeEach(function() {
+      buildOptions = {
+        head: 'abasdf',
+        base: 'bjasdf',
+        numBrowsers: 3
+      };
+    });
+
+    it('should throw if not given object', function() {
+      return assert.isRejected(storage.startBuild());
+    });
+
     it('should return an id', function() {
-      return storage.startBuild()
+      return storage.startBuild(buildOptions)
       .then(function(data) {
-        assert.equal(typeof data, 'object');
-        assert.equal(typeof data.id, 'string');
+        assert.isObject(data);
+        assert.isString(data.id);
       });
     });
 
     it('should create a folder with json file', function() {
       var dir;
 
-      return storage.startBuild()
+      return storage.startBuild(buildOptions)
       .then(function(data) {
         dir = path.join(storage._buildsPath, data.id);
-        return fs.statAsync(dir);
-      })
-      .then(function(stat) {
-        assert(stat.isDirectory());
+        assert.isDirectory(dir);
       })
       .then(function() {
         var file = path.join(dir, 'build.json');
         return fs.readJSONAsync(file);
       })
-      .then(function(file) {
-        assert.equal(file.foo, 'foo');
+      .then(function(data) {
+        assert.isObject(data);
+        assert.isString(data.id);
+        assert.shallowDeepEqual(data, buildOptions);
       });
     });
   });
 
-  describe('readFile', function() {
-    // it('should read file', function() {
-    //   return storage.readFile()
-    //   .then(function(data) {
-    //     assert.equal(data, 'foo');
-    //   });
-    // });
+  // describe('readFile', function() {
+  //   // it('should read file', function() {
+  //   //   return storage.readFile()
+  //   //   .then(function(data) {
+  //   //     assert.equal(data, 'foo');
+  //   //   });
+  //   // });
 
-    it('should create file', function() {
-      return storage.createFile()
-      .then(function() {
-        return fs.open('var/www/foo.txt', 'r');
-      });
-    });
-  });
+  //   it('should create file', function() {
+  //     return storage.createFile()
+  //     .then(function() {
+  //       return fs.open('var/www/foo.txt', 'r');
+  //     });
+  //   });
+  // });
 });
