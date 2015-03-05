@@ -37,7 +37,10 @@ Api.prototype = {
       numBrowsers: numBrowsers
     })
     .then(function(result) {
-
+      res.send({
+        status: 'success',
+        build: result.id
+      });
     })
     .catch(function() {
       res.status(500).send({
@@ -45,6 +48,26 @@ Api.prototype = {
         message: 'error starting build'
       });
     });
+  },
+
+  upload: function(req, res) {
+    throw new Error('not implemented');
+  },
+
+  getBuild: function(req, res) {
+    throw new Error('not implemented');
+  },
+
+  confirm: function(req, res) {
+    throw new Error('not implemented');
+  },
+
+  getImage: function(req, res) {
+    throw new Error('not implemented');
+  },
+
+  getDiff: function(req, res) {
+    throw new Error('not implemented');
   }
 };
 

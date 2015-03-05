@@ -8,23 +8,25 @@ var fs = bluebird.promisifyAll(require('fs-extra'));
 
 var storage = require('../server/utils/storage');
 
-mockFs();
-
 describe('Storage', function() {
+  beforeEach(function() {
+    mockFs();
+  });
+
+  afterEach(function() {
+    mockFs.restore();
+  });
+
   it('has _buildsPath', function() {
     assert(storage._buildsPath !== undefined);
   });
 
   describe('startBuild', function() {
-    var buildOptions;
-
-    beforeEach(function() {
-      buildOptions = {
-        head: 'abasdf',
-        base: 'bjasdf',
-        numBrowsers: 3
-      };
-    });
+    var buildOptions = {
+      head: 'abasdf',
+      base: 'bjasdf',
+      numBrowsers: 3
+    };
 
     it('should throw if not given object', function() {
       return assert.isRejected(storage.startBuild());
@@ -44,7 +46,6 @@ describe('Storage', function() {
       return storage.startBuild(buildOptions)
       .then(function(data) {
         dir = path.join(storage._buildsPath, data.id);
-        assert.isDirectory(dir);
       })
       .then(function() {
         var file = path.join(dir, 'build.json');
@@ -57,20 +58,4 @@ describe('Storage', function() {
       });
     });
   });
-
-  // describe('readFile', function() {
-  //   // it('should read file', function() {
-  //   //   return storage.readFile()
-  //   //   .then(function(data) {
-  //   //     assert.equal(data, 'foo');
-  //   //   });
-  //   // });
-
-  //   it('should create file', function() {
-  //     return storage.createFile()
-  //     .then(function() {
-  //       return fs.open('var/www/foo.txt', 'r');
-  //     });
-  //   });
-  // });
 });

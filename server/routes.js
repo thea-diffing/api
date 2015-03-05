@@ -17,7 +17,7 @@ module.exports = function(app) {
   Response:
   {
       status: "success",
-      build: 203
+      build: GUID
   }
 
   {
@@ -92,12 +92,12 @@ module.exports = function(app) {
       message: "unknown build"
   }
   */
-  app.route('/api/confirm').post(api.acceptDiff);
+  app.route('/api/confirm').post(api.confirm);
 
   /*
   Get the image for the SHA. These routes can be used to in <img> tags
   */
-  app.route('/api/image/:sha/:browser/:file').get(api.getBranchImage);
+  app.route('/api/image/:sha/:browser/:file').get(api.getImage);
   app.route('/api/diff/:sha/:browser/:file').get(api.getDiff);
 
   // All undefined routes should return a 404

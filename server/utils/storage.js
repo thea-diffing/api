@@ -25,16 +25,13 @@ var Storage = {
 
     var guid = uuid.v4();
 
-    var buildDir = path.join(buildsPath, guid);
+    var buildFile = path.join(buildsPath, guid, 'build.json');
 
-    return fs.ensureDirAsync(buildDir)
-    .then(function() {
-      return fs.writeJSON(path.join(buildDir, 'build.json'), {
-        id: guid,
-        head: options.head,
-        base: options.base,
-        numBrowsers: options.numBrowsers
-      });
+    return fs.outputJSONAsync(buildFile, {
+      id: guid,
+      head: options.head,
+      base: options.base,
+      numBrowsers: options.numBrowsers
     })
     .then(function() {
       return {
