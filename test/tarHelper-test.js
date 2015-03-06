@@ -14,7 +14,7 @@ describe('TarHelper', function() {
       .then(function(files) {
         assert.equal(files.length, 2);
         assert(files.indexOf('foo.png') !== -1);
-        assert(files.indexOf('deeper/bar.png') !== -1);
+        assert(files.indexOf(path.join('deeper','bar.png')) !== -1);
       });
     });
   });
