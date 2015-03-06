@@ -1,12 +1,13 @@
 'use strict';
 
-var bluebird = require('bluebird');
+var Bluebird = require('bluebird');
 
 var path = require('path');
 var mockFs = require('mock-fs');
-var fs = bluebird.promisifyAll(require('fs-extra'));
+var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var storage = require('../server/utils/storage');
+var dir = require('node-dir');
 
 describe('Storage', function() {
   beforeEach(function() {

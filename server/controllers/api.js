@@ -4,7 +4,7 @@ var fs = require('fs-extra');
 var path = require('path');
 
 var glob = require('glob'),
-    targz = require('tar.gz'),
+    // targz = require('tar.gz'),
     async = require('async'),
     readDir = require('../utils/readDir'),
     mainBranch = 'master',

@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/VisualTesting/api.svg?branch=master)](https://travis-ci.org/VisualTesting/api)
+[![Build status](https://ci.appveyor.com/api/projects/status/g35ex5x5pmgcube8/branch/master?svg=true)](https://ci.appveyor.com/project/TheSavior/api/branch/master)
+
 More to come. The API server to power the visual testing framework.
 
 Based heavily off of https://github.com/webdriverio/webdrivercss-adminpanel
