@@ -46,6 +46,7 @@
   },
   "scripts": {
     "start": "grunt serve",
-    "test": "NODE_ENV=test mocha --color"
+    "test": "NODE_ENV=test mocha --color",
+    "appveyor": "set NODE_ENV=test&& mocha --color"
   }
 }
