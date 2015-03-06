@@ -2,7 +2,7 @@
 
 var Bluebird = require('bluebird');
 var mockFs = require('mock-fs');
-var TarHelper = require('./utils/tarHelper');
+var TarHelper = require('../server/utils/tarHelper');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var path = require('path');
 
@@ -57,16 +57,15 @@ describe('TarHelper', function() {
         assert.equal(files.length, 4);
 
         var expectedFiles = [
-          path.join('chrome', 'homepage.search.700.png'),
-          path.join('chrome', 'homepage.search.1300.png'),
-          path.join('chrome', 'homepage.form.700.png'),
-          path.join('chrome', 'homepage.form.1300.png')
+          'homepage.search.700.png',
+          'homepage.search.1300.png',
+          'homepage.form.700.png',
+          'homepage.form.1300.png'
         ];
 
-        for (var i = 0; i < expectedFiles.length; i++) {
-          var expected = expectedFiles[i];
+        return expectedFiles.forEach(function(expected) {
           assert(files.indexOf(expected) !== -1);
-        }
+        });
       });
     });
   });

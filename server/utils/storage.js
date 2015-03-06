@@ -1,9 +1,10 @@
 'use strict';
 
-var bluebirdPromise = require('bluebird');
-var fs = bluebirdPromise.promisifyAll(require('fs-extra'));
+var Bluebird = require('bluebird');
+var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
+var tar = require('tar-fs');
 
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
@@ -16,14 +17,12 @@ var Storage = {
     fs.ensureDirSync(shasPath);
   },
 
+  /**
+  options.head string
+  options.base string
+  options.numbBrowsers number
+  */
   startBuild: function(options) {
-    if (typeof options !== 'object' ||
-        typeof options.head !== 'string' ||
-        typeof options.base !== 'string' ||
-        typeof options.numBrowsers !== 'number') {
-      return bluebirdPromise.reject('Invalid arguments');
-    }
-
     var guid = uuid.v4();
 
     var buildFile = path.join(buildsPath, guid, 'build.json');
@@ -39,11 +38,40 @@ var Storage = {
         id: guid
       };
     });
+  },
+
+  /*
+  options.sha string
+  options.browser string
+  options.tarPath string
+  */
+  saveImages: function(options) {
+    var extractPath = path.join(shasPath, options.sha, options.browser);
+
+    return fs.ensureDirAsync(extractPath)
+    .then(function() {
+      return new Bluebird(function(resolve, reject) {
+        var readStream = fs.createReadStream(options.tarPath);
+
+        var extract = tar.extract(extractPath);
+
+        extract.on('error', function(err) {
+          reject(err);
+        });
+
+        extract.on('finish', function() {
+          resolve();
+        });
+
+        readStream.pipe(extract);
+      });
+    });
   }
 };
 
 if (process.env.NODE_ENV === 'test') {
   Storage._buildsPath = buildsPath;
+  Storage._shasPath = shasPath;
 }
 
 module.exports = Storage;

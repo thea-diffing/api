@@ -5,23 +5,8 @@ var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var tar = require('tar-fs');
 var path = require('path');
-var dir = require('node-dir');
 var uuid = require('node-uuid');
-
-function readFiles(path, options) {
-  return new Bluebird(function(resolve, reject) {
-    dir.readFiles(path, options, function(err, content, next) {
-      next();
-    }, function(err, files) {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      resolve(files);
-    });
-  });
-}
+var dirHelper = require('./dirHelper');
 
 var TarHelper = {
   createImage: function() {
@@ -45,10 +30,10 @@ var TarHelper = {
     var image = this.createImage();
     var base = path.join(__dirname, 'path');
     var files = [
-      path.join('chrome', 'homepage.search.700.png'),
-      path.join('chrome', 'homepage.search.1300.png'),
-      path.join('chrome', 'homepage.form.700.png'),
-      path.join('chrome', 'homepage.form.1300.png')
+      'homepage.search.700.png',
+      'homepage.search.1300.png',
+      'homepage.form.700.png',
+      'homepage.form.1300.png'
     ];
 
     var promises = files.map(function(file) {
@@ -109,14 +94,12 @@ var TarHelper = {
       });
     })
     .then(function() {
-      return readFiles(folder);
+      return dirHelper.readFiles(folder);
     })
     .then(function(files) {
       return fs.removeAsync(tmp)
       .then(function() {
-        return files.map(function(file) {
-          return path.relative(folder, file);
-        });
+        return files;
       });
     });
   }

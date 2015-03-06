@@ -3,12 +3,13 @@
 var fs = require('fs-extra');
 var path = require('path');
 
-var glob = require('glob'),
-    // targz = require('tar.gz'),
-    async = require('async'),
-    readDir = require('../utils/readDir'),
-    mainBranch = 'master',
-    resemble = require('node-resemble-js');
+var glob = require('glob');
+var async = require('async');
+var readDir = require('../utils/dirHelper');
+var mainBranch = 'master';
+var resemble = require('node-resemble-js');
+
+var dirHelper = require('../utils/dirHelper');
 
 var storage = require('../utils/storage');
 
@@ -51,7 +52,40 @@ Api.prototype = {
   },
 
   upload: function(req, res) {
-    throw new Error('not implemented');
+    var params = req.body;
+
+    var sha;
+    var browser;
+    var files;
+    var images;
+
+    try {
+      sha = params.sha;
+      browser = params.browser;
+      files = req.files;
+      images = files.images;
+    }
+    finally {
+      if (!sha || !browser || !files || !images) {
+        res.status(400).send({
+          status: 'failure',
+          message: 'invalid arguments'
+        });
+        return;
+      }
+    }
+
+    // TODO: validate the structure of the tar file
+    storage.saveImages({
+      sha: sha,
+      browser: browser,
+      tarPath: images.path
+    })
+    .then(function() {
+      res.send(200, {
+        status: 'success'
+      });
+    });
   },
 
   getBuild: function(req, res) {

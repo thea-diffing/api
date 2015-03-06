@@ -22,7 +22,7 @@ module.exports = function(app) {
 
   {
       status: "failure",
-      message: "Invalid Arguments"
+      message: "invalid arguments"
   }
   */
   app.route('/api/startBuild').post(api.startBuild);
@@ -30,10 +30,10 @@ module.exports = function(app) {
   /*
   Upload a tarball with the images
   POST params:
-  - build id
   - sha (40 chars)
   - browser name
-  - images (a tar of the images)
+  - files
+    - images (a tar of the images)
   Response:
   {
       status: "success"
@@ -41,7 +41,7 @@ module.exports = function(app) {
 
   {
       status: "failure",
-      message: "unknown sha"
+      message: "failed uploading"
   }
   */
   app.route('/api/upload').post(api.upload);
