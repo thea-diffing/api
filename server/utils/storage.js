@@ -66,6 +66,19 @@ var Storage = {
         readStream.pipe(extract);
       });
     });
+  },
+
+  /*
+  id string
+  */
+  hasBuild: function(id) {
+    return fs.statAsync(path.join(buildsPath, id))
+    .then(function(stat) {
+      return stat.isDirectory();
+    })
+    .catch(function() {
+      return false;
+    });
   }
 };
 

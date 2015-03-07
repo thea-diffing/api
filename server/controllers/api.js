@@ -26,7 +26,7 @@ Api.prototype = {
     var numBrowsers = params.numBrowsers;
 
     if (!head || !base || !numBrowsers) {
-      res.status(400).send({
+      res.send(400, {
         status: 'failure',
         message: 'invalid arguments'
       });
@@ -44,7 +44,7 @@ Api.prototype = {
       });
     })
     .catch(function() {
-      res.status(500).send({
+      res.send(500, {
         status: 'failure',
         message: 'error starting build'
       });
@@ -67,7 +67,7 @@ Api.prototype = {
     }
     finally {
       if (!sha || !browser || !files || !images) {
-        res.status(400).send({
+        res.send(400, {
           status: 'failure',
           message: 'invalid arguments'
         });
@@ -84,6 +84,12 @@ Api.prototype = {
     .then(function() {
       res.send(200, {
         status: 'success'
+      });
+    })
+    .catch(function() {
+      res.send(500, {
+        status: 'failure',
+        message: 'failed uploading'
       });
     });
   },

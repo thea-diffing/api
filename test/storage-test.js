@@ -88,4 +88,39 @@ describe('Storage', function() {
       });
     });
   });
+
+  describe('hasBuild', function() {
+    var buildOptions = {
+        head: 'abasdf',
+        base: 'bjasdf',
+        numBrowsers: 3
+      };
+
+    it('should have no build if startBuild not called', function() {
+      return storage.hasBuild('asdf')
+      .then(function(status) {
+        assert.isFalse(status);
+      });
+    });
+
+    it('should have build if startBuild called', function() {
+      return storage.startBuild(buildOptions)
+      .then(function(data) {
+        return storage.hasBuild(data.id);
+      })
+      .then(function(status) {
+        assert.isTrue(status);
+      });
+    });
+
+    it('should not have build if different id than startBuild', function() {
+      return storage.startBuild(buildOptions)
+      .then(function(data) {
+        return storage.hasBuild(data.id + '_');
+      })
+      .then(function(status) {
+        assert.isFalse(status);
+      });
+    });
+  });
 });
