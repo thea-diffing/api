@@ -39,7 +39,10 @@ module.exports = function(app) {
     app.use(express.static(path.join(config.root, 'dist')));
   }
 
-  app.use(morgan('dev'));
+  if (env !== 'test') {
+    app.use(morgan('dev'));
+  }
+
   app.use(bodyParser());
   app.use(multipart());
   app.use(methodOverride());

@@ -1,32 +1,125 @@
 'use strict';
 
-/**
- * Using Rails-like standard naming convention for endpoints.
- * GET   /api/repositories                     ->  getDirectoryList
- * GET   /api/repositories/:file               ->  downloadRepository
- * GET   /api/repositories/:project/:file      ->  getImage
- * GET   /api/repositories/:project/diff/:diff ->  getImage
- * POST  /api/repositories/confirm             ->  acceptDiff
- * POST  /api/repositories/*                   ->  syncImages
- */
+var fs = require('fs-extra');
+var path = require('path');
 
-var fs = require('fs-extra'),
-    path = require('path'),
-    glob = require('glob'),
-    targz = require('tar.gz'),
-    async = require('async'),
-    readDir = require('../utils/readDir'),
-    // imageRepo = path.join(__dirname, '..', '..', '..', 'repositories');
-    imageRepo = path.join(__dirname, '..', '..', 'repositories'),
-    mainBranch = 'master',
-    resemble = require('node-resemble-js');
+var glob = require('glob');
+var async = require('async');
+var readDir = require('../utils/dirHelper');
+var mainBranch = 'master';
+var resemble = require('node-resemble-js');
+
+var dirHelper = require('../utils/dirHelper');
+
+var storage = require('../utils/storage');
+
+function Api() {
+  storage.init();
+}
+
+Api.prototype = {
+  startBuild: function(req, res) {
+    var params = req.body;
+
+    var head = params.head;
+    var base = params.base;
+    var numBrowsers = params.numBrowsers;
+
+    if (!head || !base || !numBrowsers) {
+      res.send(400, {
+        status: 'failure',
+        message: 'invalid arguments'
+      });
+    }
+
+    storage.startBuild({
+      head: head,
+      base: base,
+      numBrowsers: numBrowsers
+    })
+    .then(function(result) {
+      res.send({
+        status: 'success',
+        build: result.id
+      });
+    })
+    .catch(function() {
+      res.send(500, {
+        status: 'failure',
+        message: 'error starting build'
+      });
+    });
+  },
+
+  upload: function(req, res) {
+    var params = req.body;
+
+    var sha;
+    var browser;
+    var files;
+    var images;
+
+    try {
+      sha = params.sha;
+      browser = params.browser;
+      files = req.files;
+      images = files.images;
+    }
+    finally {
+      if (!sha || !browser || !files || !images) {
+        res.send(400, {
+          status: 'failure',
+          message: 'invalid arguments'
+        });
+        return;
+      }
+    }
+
+    // TODO: validate the structure of the tar file
+    storage.saveImages({
+      sha: sha,
+      browser: browser,
+      tarPath: images.path
+    })
+    .then(function() {
+      res.send(200, {
+        status: 'success'
+      });
+    })
+    .catch(function() {
+      res.send(500, {
+        status: 'failure',
+        message: 'failed uploading'
+      });
+    });
+  },
+
+  getBuild: function(req, res) {
+    throw new Error('not implemented');
+  },
+
+  confirm: function(req, res) {
+    throw new Error('not implemented');
+  },
+
+  getImage: function(req, res) {
+    throw new Error('not implemented');
+  },
+
+  getDiff: function(req, res) {
+    throw new Error('not implemented');
+  }
+};
+
+module.exports = new Api();
+
+return;
 
 exports.syncImages = function(req, res) {
 
   if (!req.files || !req.body.branchName) {
     return res.send(500);
   }
-
 
   // We don't want to allow sub-folders
   var branchName = req.body.branchName.replace('/', '-');
