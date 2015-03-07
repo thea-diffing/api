@@ -4,6 +4,4 @@ node_js:
   - io.js
   - "0.10"
 notifications:
-  email:
-    on_success: change
-    on_failure: change
+  email: false
