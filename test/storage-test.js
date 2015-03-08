@@ -56,6 +56,33 @@ describe('Storage', function() {
       .then(function(data) {
         assert.isObject(data);
         assert.isString(data.id);
+        assert.equal(data.status, 'pending');
+        assert.shallowDeepEqual(data, buildOptions);
+      });
+    });
+  });
+
+  describe('getBuildInfo', function() {
+    it('should return build info', function() {
+      var buildOptions = {
+        head: 'abasdf',
+        base: 'bjasdf',
+        numBrowsers: 3
+      };
+
+      var buildId;
+
+      return storage.startBuild(buildOptions)
+      .then(function(data) {
+        buildId = data.id;
+      })
+      .then(function() {
+        return storage.getBuildInfo(buildId);
+      })
+      .then(function(data) {
+        assert.isObject(data);
+        assert.isString(data.id);
+        assert.equal(data.status, 'pending');
         assert.shallowDeepEqual(data, buildOptions);
       });
     });

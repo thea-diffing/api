@@ -31,7 +31,8 @@ var Storage = {
       id: guid,
       head: options.head,
       base: options.base,
-      numBrowsers: options.numBrowsers
+      numBrowsers: options.numBrowsers,
+      status: 'pending'
     })
     .then(function() {
       return {
@@ -79,6 +80,15 @@ var Storage = {
     .catch(function() {
       return false;
     });
+  },
+
+  /*
+  id string
+  */
+  getBuildInfo: function(id) {
+    var buildFile = path.join(buildsPath, id, 'build.json');
+
+    return fs.readJSONAsync(buildFile);
   }
 };
 
