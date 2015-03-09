@@ -88,7 +88,24 @@ var Storage = {
   getBuildInfo: function(id) {
     var buildFile = path.join(buildsPath, id, 'build.json');
 
-    return fs.readJSONAsync(buildFile);
+    return fs.readJSONAsync(buildFile)
+    .catch(function() {
+      throw Error('Unknown Build');
+    });
+  },
+
+  /*
+  sha string
+  */
+  getBrowsersForSha: function(sha) {
+    var shaPath = path.join(shasPath, sha);
+
+    return fs.readdirAsync(shaPath)
+    .then(function(files) {
+      return files.filter(function(file) {
+        return fs.statSync(path.join(shaPath, file)).isDirectory();
+      });
+    });
   }
 };
 

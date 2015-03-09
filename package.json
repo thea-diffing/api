@@ -20,6 +20,7 @@
     "morgan": "~1.0.0",
     "node-resemble-js": "0.0.4",
     "node-uuid": "^1.4.2",
+    "object-assign": "^2.0.0",
     "static-favicon": "~1.0.1"
   },
   "devDependencies": {
@@ -32,10 +33,13 @@
     "jscs": "^1.11.3",
     "jshint": "^2.6.3",
     "mocha": "^2.1.0",
+    "mocha-sinon": "^1.1.4",
     "mock-fs": "^2.5.0",
     "node-dir": "^0.1.6",
     "pngjs-image": "^0.9.3",
     "proxyquire": "^1.4.0",
+    "sinon": "^1.13.0",
+    "sinon-as-promised": "^2.0.3",
     "supertest": "^0.15.0",
     "supertest-as-promised": "^1.0.0",
     "tar-contents": "^1.0.1",

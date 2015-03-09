@@ -62,32 +62,6 @@ describe('Storage', function() {
     });
   });
 
-  describe('getBuildInfo', function() {
-    it('should return build info', function() {
-      var buildOptions = {
-        head: 'abasdf',
-        base: 'bjasdf',
-        numBrowsers: 3
-      };
-
-      var buildId;
-
-      return storage.startBuild(buildOptions)
-      .then(function(data) {
-        buildId = data.id;
-      })
-      .then(function() {
-        return storage.getBuildInfo(buildId);
-      })
-      .then(function(data) {
-        assert.isObject(data);
-        assert.isString(data.id);
-        assert.equal(data.status, 'pending');
-        assert.shallowDeepEqual(data, buildOptions);
-      });
-    });
-  });
-
   describe('saveImages', function() {
     var tarPath = path.join(__dirname, 'foo.tar.gz');
 
@@ -147,6 +121,89 @@ describe('Storage', function() {
       })
       .then(function(status) {
         assert.isFalse(status);
+      });
+    });
+  });
+
+  describe('getBuildInfo', function() {
+    it('should reject non existent build', function() {
+      assert.isRejected(storage.getBuildInfo('foo'), /Unknown Build/);
+    });
+
+    it('should return build info', function() {
+      var buildOptions = {
+        head: 'abasdf',
+        base: 'bjasdf',
+        numBrowsers: 3
+      };
+
+      var buildId;
+
+      return storage.startBuild(buildOptions)
+      .then(function(data) {
+        buildId = data.id;
+      })
+      .then(function() {
+        return storage.getBuildInfo(buildId);
+      })
+      .then(function(data) {
+        assert.isObject(data);
+        assert.isString(data.id);
+        assert.equal(data.status, 'pending');
+        assert.shallowDeepEqual(data, buildOptions);
+      });
+    });
+  });
+
+  describe('getBrowsersForSha', function() {
+    var dirPath = path.join(storage._shasPath, 'foo');
+
+    beforeEach(function() {
+      return fs.ensureDirAsync(dirPath);
+    });
+
+    it('returns empty array if no browsers', function() {
+      return storage.getBrowsersForSha('foo')
+      .then(function(browsers) {
+        assert.equal(browsers.length, 0);
+      });
+    });
+
+    it('returns one item if one folder', function() {
+      return fs.ensureDirAsync(path.join(dirPath, 'Chrome'))
+      .then(function() {
+        return storage.getBrowsersForSha('foo');
+      })
+      .then(function(browsers) {
+        assert.deepEqual(browsers, ['Chrome']);
+      });
+    });
+
+    it('returns one item if one folder and one file', function() {
+      return fs.ensureDirAsync(path.join(dirPath, 'Internet Explorer'))
+      .then(function() {
+        return fs.ensureFileAsync(path.join(dirPath, 'foo.txt'));
+      })
+      .then(function() {
+        return storage.getBrowsersForSha('foo');
+      })
+      .then(function(browsers) {
+        assert.deepEqual(browsers, ['Internet Explorer']);
+      });
+    });
+
+    it('returns two items if two folders', function() {
+      return fs.ensureDirAsync(path.join(dirPath, 'Internet Explorer'))
+      .then(function() {
+        return fs.ensureDirAsync(path.join(dirPath, 'Chrome'))
+      })
+      .then(function() {
+        return storage.getBrowsersForSha('foo');
+      })
+      .then(function(browsers) {
+        assert.equal(browsers.length, 2);
+        assert(browsers.indexOf('Internet Explorer') !== -1);
+        assert(browsers.indexOf('Chrome') !== -1);
       });
     });
   });
