@@ -26,80 +26,77 @@ describe('module/checkBuild', function() {
     });
   });
 
-  describe('with invalid payload', function() {
-    it('should throw', function() {
-      assert.throws(function() {
-        checkBuild._buildReceived();
-      });
-    });
-  });
+  describe('buildReceived', function() {
+    var diffCommonBrowsersSpy;
 
-  describe('with completed build', function() {
     beforeEach(function() {
-      storageStub.getBrowsersForSha = this.sinon.stub()
-      .withArgs('foo')
-      .resolves(['Chrome', 'Firefox']);
+      diffCommonBrowsersSpy = this.sinon.spy();
+      checkBuild._diffCommonBrowsers = diffCommonBrowsersSpy;
     });
 
-    it('should not throw', function() {
-      assert.doesNotThrow(function() {
-        checkBuild._buildReceived({
-          id: 'foo'
+    describe('with invalid payload', function() {
+      it('should throw', function() {
+        assert.throws(function() {
+          checkBuild._buildReceived();
         });
       });
     });
 
-    it('should call calculateDiffs', function() {
-      var spy = this.sinon.spy();
-      checkBuild._calculateDiffs = spy;
+    describe('with completed build', function() {
+      beforeEach(function() {
+        storageStub.getBrowsersForSha = this.sinon.stub()
+        .withArgs('foo')
+        .resolves(['Chrome', 'Firefox']);
+      });
 
-      return checkBuild._buildReceived({
-        id: 'foo'
-      })
-      .then(function() {
-        assert.calledWithExactly(spy, {
-          buildInfo: {
+      it('should not throw', function() {
+        assert.doesNotThrow(function() {
+          checkBuild._buildReceived({
+            id: 'foo'
+          });
+        });
+      });
+
+      it('should call calculateDiffs', function() {
+        return checkBuild._buildReceived({
+          id: 'foo'
+        })
+        .then(function() {
+          assert.calledWithExactly(diffCommonBrowsersSpy, {
             head: 'foo',
-            base: 'bar',
-            numBrowsers: 2
-          },
-          browsers: ['Chrome', 'Firefox']
+            base: 'bar'
+          });
         });
       });
     });
-  });
 
-  describe('with non-completed build', function() {
-    beforeEach(function() {
-      storageStub.getBrowsersForSha = this.sinon.stub()
-      .withArgs('foo')
-      .resolves(['Chrome']);
-    });
+    describe('with non-completed build', function() {
+      beforeEach(function() {
+        storageStub.getBrowsersForSha = this.sinon.stub()
+        .withArgs('foo')
+        .resolves(['Chrome']);
+      });
 
-    it('should not throw', function() {
-      assert.doesNotThrow(function() {
-        checkBuild._buildReceived({
+      it('should not throw', function() {
+        assert.doesNotThrow(function() {
+          checkBuild._buildReceived({
+            id: 'foo'
+          });
+        });
+      });
+
+      it('should call calculateDiffs', function() {
+        return checkBuild._buildReceived({
           id: 'foo'
+        })
+        .then(function() {
+          assert.callCount(diffCommonBrowsersSpy, 0);
         });
-      });
-    });
-
-    it('should call calculateDiffs', function() {
-      var spy = this.sinon.spy();
-      checkBuild._calculateDiffs = spy;
-
-      return checkBuild._buildReceived({
-        id: 'foo'
-      })
-      .then(function() {
-        assert.callCount(spy, 0);
       });
     });
   });
 
-
-
-  it('should call storage.getBuild', function() {
+  describe('calculateDiffs', function() {
 
   });
 });
