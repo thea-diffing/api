@@ -60,6 +60,7 @@ function diffCommonBrowsers(options) {
 
     return Bluebird.all(imagePromises);
 
+
     // if head browsers === base browsers, obv
     // if head browsers is subset of base browsers
     //    use head browsers

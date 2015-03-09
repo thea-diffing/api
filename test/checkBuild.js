@@ -26,14 +26,7 @@ describe('module/checkBuild', function() {
     });
   });
 
-  describe('buildReceived', function() {
-    var diffCommonBrowsersSpy;
-
-    beforeEach(function() {
-      diffCommonBrowsersSpy = this.sinon.spy();
-      checkBuild._diffCommonBrowsers = diffCommonBrowsersSpy;
-    });
-
+  describe('#buildReceived', function() {
     describe('with invalid payload', function() {
       it('should throw', function() {
         assert.throws(function() {
@@ -57,14 +50,17 @@ describe('module/checkBuild', function() {
         });
       });
 
-      it('should call calculateDiffs', function() {
+      it('should call diffCommonBrowsers', function() {
+        var spy = this.sinon.spy();
+        checkBuild._diffCommonBrowsers = spy;
+
         return checkBuild._buildReceived({
           id: 'foo'
         })
         .then(function() {
-          assert.calledWithExactly(diffCommonBrowsersSpy, {
+          assert.calledWithExactly(spy, {
             head: 'foo',
-            base: 'bar'
+            base: 'bar',
           });
         });
       });
@@ -85,18 +81,30 @@ describe('module/checkBuild', function() {
         });
       });
 
-      it('should call calculateDiffs', function() {
+      it('should not call diffCommonBrowsers', function() {
+        var spy = this.sinon.spy();
+        checkBuild._diffCommonBrowsers = spy;
+
         return checkBuild._buildReceived({
           id: 'foo'
         })
         .then(function() {
-          assert.callCount(diffCommonBrowsersSpy, 0);
+          assert.callCount(spy, 0);
         });
       });
     });
   });
 
-  describe('calculateDiffs', function() {
+  describe('#diffCommonBrowsers', function() {
+    describe('for build with same browsers', function() {
+      beforeEach(function() {
+        storageStub.getBrowsersForSha = this.sinon.stub()
+          .resolves(['Chrome', 'Firefox']);
+      })
 
+      it('calls diffBrowsers for both browsers', function() {
+        // checkBuild._diffCommonBrowsers()
+      })
+    })
   });
 });
