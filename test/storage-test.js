@@ -10,7 +10,7 @@ var storage = require('../server/utils/storage');
 var TarHelper = require('../server/utils/tarHelper');
 var DirHelper = require('../server/utils/dirHelper');
 
-describe('Storage', function() {
+describe('module/storage', function() {
   beforeEach(function() {
     mockFs();
   });

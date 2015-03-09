@@ -9,7 +9,7 @@ payload.id string
 */
 function buildReceived(payload) {
   if (payload === undefined || payload.id === undefined) {
-    throw new Error('Payload must contain an id');
+    return new Bluebird.reject(new Error('Payload must contain an id'));
   }
 
   var buildId = payload.id;
@@ -41,7 +41,7 @@ function diffCommonBrowsers(options) {
   var head = options.head;
   var base = options.base;
 
-  return Bluebird.join([
+  return Bluebird.all([
     storage.getBrowsersForSha(head),
     storage.getBrowsersForSha(base)
     ])
@@ -59,7 +59,6 @@ function diffCommonBrowsers(options) {
     });
 
     return Bluebird.all(imagePromises);
-
 
     // if head browsers === base browsers, obv
     // if head browsers is subset of base browsers

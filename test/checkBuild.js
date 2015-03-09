@@ -29,9 +29,7 @@ describe('module/checkBuild', function() {
   describe('#buildReceived', function() {
     describe('with invalid payload', function() {
       it('should throw', function() {
-        assert.throws(function() {
-          checkBuild._buildReceived();
-        });
+        return assert.isRejected(checkBuild._buildReceived());
       });
     });
 
@@ -42,12 +40,11 @@ describe('module/checkBuild', function() {
         .resolves(['Chrome', 'Firefox']);
       });
 
-      it('should not throw', function() {
-        assert.doesNotThrow(function() {
-          checkBuild._buildReceived({
-            id: 'foo'
-          });
-        });
+      it('should fulfill', function() {
+        return assert.isFulfilled(checkBuild._buildReceived({
+          id: 'foo'
+        }));
+
       });
 
       it('should call diffCommonBrowsers', function() {
@@ -60,7 +57,7 @@ describe('module/checkBuild', function() {
         .then(function() {
           assert.calledWithExactly(spy, {
             head: 'foo',
-            base: 'bar',
+            base: 'bar'
           });
         });
       });
@@ -74,11 +71,9 @@ describe('module/checkBuild', function() {
       });
 
       it('should not throw', function() {
-        assert.doesNotThrow(function() {
-          checkBuild._buildReceived({
-            id: 'foo'
-          });
-        });
+        return assert.isFulfilled(checkBuild._buildReceived({
+          id: 'foo'
+        }));
       });
 
       it('should not call diffCommonBrowsers', function() {
@@ -100,11 +95,11 @@ describe('module/checkBuild', function() {
       beforeEach(function() {
         storageStub.getBrowsersForSha = this.sinon.stub()
           .resolves(['Chrome', 'Firefox']);
-      })
+      });
 
       it('calls diffBrowsers for both browsers', function() {
         // checkBuild._diffCommonBrowsers()
-      })
-    })
+      });
+    });
   });
 });
