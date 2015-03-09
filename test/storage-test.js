@@ -195,7 +195,7 @@ describe('Storage', function() {
     it('returns two items if two folders', function() {
       return fs.ensureDirAsync(path.join(dirPath, 'Internet Explorer'))
       .then(function() {
-        return fs.ensureDirAsync(path.join(dirPath, 'Chrome'))
+        return fs.ensureDirAsync(path.join(dirPath, 'Chrome'));
       })
       .then(function() {
         return storage.getBrowsersForSha('foo');
