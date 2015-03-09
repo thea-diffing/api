@@ -15,7 +15,7 @@
     "grunt-express-server": "~0.4.5",
     "load-grunt-tasks": "^3.1.0",
     "lodash": "^3.5.0",
-    "method-override": "~1.0.0",
+    "method-override": "^2.3.1",
     "morgan": "~1.0.0",
     "node-resemble-js": "0.0.4",
     "node-uuid": "^1.4.2",
