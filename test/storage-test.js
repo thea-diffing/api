@@ -5,6 +5,9 @@ var Bluebird = require('bluebird');
 var path = require('path');
 var mockFs = require('mock-fs');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
+var proxyquire = require('proxyquire');
+require('mocha-sinon');
+require('sinon-as-promised')(Bluebird);
 
 var storage = require('../server/utils/storage');
 var TarHelper = require('../server/utils/tarHelper');
@@ -27,7 +30,7 @@ describe('module/storage', function() {
     assert(storage._shasPath !== undefined);
   });
 
-  describe('startBuild', function() {
+  describe('#startBuild', function() {
     var buildOptions = {
       head: 'abasdf',
       base: 'bjasdf',
@@ -62,7 +65,7 @@ describe('module/storage', function() {
     });
   });
 
-  describe('saveImages', function() {
+  describe('#saveImages', function() {
     var tarPath = path.join(__dirname, 'foo.tar.gz');
 
     beforeEach(function() {
@@ -90,7 +93,7 @@ describe('module/storage', function() {
     });
   });
 
-  describe('hasBuild', function() {
+  describe('#hasBuild', function() {
     var buildOptions = {
         head: 'abasdf',
         base: 'bjasdf',
@@ -125,7 +128,7 @@ describe('module/storage', function() {
     });
   });
 
-  describe('getBuildInfo', function() {
+  describe('#getBuildInfo', function() {
     it('should reject non existent build', function() {
       assert.isRejected(storage.getBuildInfo('foo'), /Unknown Build/);
     });
@@ -155,7 +158,7 @@ describe('module/storage', function() {
     });
   });
 
-  describe('getBrowsersForSha', function() {
+  describe('#getBrowsersForSha', function() {
     var dirPath = path.join(storage._shasPath, 'foo');
 
     beforeEach(function() {
@@ -204,6 +207,47 @@ describe('module/storage', function() {
         assert.equal(browsers.length, 2);
         assert(browsers.indexOf('Internet Explorer') !== -1);
         assert(browsers.indexOf('Chrome') !== -1);
+      });
+    });
+  });
+
+  describe('#getImagesForShaBrowsers', function() {
+    var readFilesSpy;
+    var storage;
+
+    beforeEach(function() {
+      mockFs.restore();
+
+      readFilesSpy = this.sinon.stub().resolves([]);
+      var dirHelperStub = {
+        '@noCallThru': true,
+        readFiles: readFilesSpy
+      };
+
+      storage = proxyquire('../server/utils/storage', {
+        './dirHelper': dirHelperStub
+      });
+    });
+
+    it('should fulfill', function() {
+      return assert.isFulfilled(storage.getImagesForShaBrowser({
+        sha: 'foo',
+        browser: 'Chrome'
+      }));
+    });
+
+    it('should call readFiles', function() {
+      var sha = 'foo';
+      var browser = 'Internet Explorer';
+
+      return storage.getImagesForShaBrowser({
+        sha: sha,
+        browser: browser
+      })
+      .then(function() {
+        var browserPath = path.join(storage._shasPath, sha, browser);
+
+        assert.calledOnce(readFilesSpy.withArgs(browserPath));
       });
     });
   });

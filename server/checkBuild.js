@@ -32,7 +32,7 @@ function buildReceived(payload) {
   })
   .then(function(result) {
 
-  });
+  })
 }
 
 /*
@@ -47,7 +47,7 @@ function diffCommonBrowsers(options) {
   return Bluebird.all([
     storage.getBrowsersForSha(head),
     storage.getBrowsersForSha(base)
-    ])
+  ])
   .spread(function(headBrowsers, baseBrowsers) {
     var commonBrowsers = headBrowsers.filter(function(n) {
       return baseBrowsers.indexOf(n) !== -1;
@@ -71,7 +71,46 @@ options.base string
 options.browser string
 */
 function diffBrowser(options) {
+  var head = options.head;
+  var base = options.base;
+  var browser = options.browser;
 
+  return Bluebird.all([
+    storage.getImagesForShaBrowser({
+      sha: head,
+      browser: browser
+    }),
+    storage.getImagesForShaBrowser({
+      sha: base,
+      browser: browser
+    })
+  ])
+  .spread(function(headImages, baseImages) {
+    var commonImages = headImages.filter(function(image) {
+      return baseImages.indexOf(image) !== -1;
+    });
+
+    var imagePromises = commonImages.map(function(image) {
+      return diffImage({
+        head: head,
+        base: base,
+        browser: browser,
+        image: image
+      });
+    });
+
+    return Bluebird.all(imagePromises);
+  });
+}
+
+/*
+options.head string
+options.base string
+options.browser string
+options.image string
+*/
+function diffImage(options) {
+  // console.log('foo', options);
 }
 
 dispatcher.on('buildReceived', buildReceived);
@@ -96,6 +135,15 @@ if (process.env.NODE_ENV === 'test') {
     },
     set: function(newFunc) {
       diffBrowser = newFunc;
+    }
+  });
+
+  Object.defineProperty(visible, '_diffImage', {
+    get: function() {
+      return diffImage;
+    },
+    set: function(newFunc) {
+      diffImage = newFunc;
     }
   });
 

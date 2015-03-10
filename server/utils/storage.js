@@ -5,6 +5,7 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
 var tar = require('tar-fs');
+var dirHelper = require('./dirHelper');
 
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
@@ -101,6 +102,18 @@ var Storage = {
         return fs.statSync(path.join(shaPath, file)).isDirectory();
       });
     });
+  },
+
+  /*
+  options.sha string
+  options.browser string
+  */
+  getImagesForShaBrowser: function(options) {
+    var sha = options.sha;
+    var browser = options.browser;
+
+    var browserPath = path.join(shasPath, sha, browser);
+    return dirHelper.readFiles(browserPath);
   }
 };
 

@@ -21,8 +21,14 @@ describe('module/checkBuild', function() {
       numBrowsers: 2
     });
 
+    var dispatcherStub = {
+      '@noCallThru': true,
+      on: this.sinon.spy()
+    };
+
     checkBuild = proxyquire('../server/checkBuild', {
-      './utils/storage': storageStub
+      './utils/storage': storageStub,
+      './dispatcher': dispatcherStub
     });
   });
 
@@ -41,6 +47,9 @@ describe('module/checkBuild', function() {
       });
 
       it('should fulfill', function() {
+        checkBuild._diffCommonBrowsers = this.sinon.stub()
+        .resolves(true);
+
         return assert.isFulfilled(checkBuild._buildReceived({
           id: 'foo'
         }));
@@ -91,9 +100,9 @@ describe('module/checkBuild', function() {
   });
 
   describe('#diffCommonBrowsers', function() {
-    describe('for build with same browsers', function() {
-      var diffBrowserSpy;
+    var diffBrowserSpy;
 
+    describe('for build with same browsers', function() {
       beforeEach(function() {
         storageStub.getBrowsersForSha = this.sinon.stub()
           .resolves(['Chrome', 'Firefox']);
@@ -124,8 +133,6 @@ describe('module/checkBuild', function() {
     });
 
     describe('for build with different browsers with overlap', function() {
-      var diffBrowserSpy;
-
       beforeEach(function() {
         var stub = this.sinon.stub();
         stub.withArgs('foo')
@@ -168,8 +175,6 @@ describe('module/checkBuild', function() {
     });
 
     describe('for build with different browsers with no overlap', function() {
-      var diffBrowserSpy;
-
       beforeEach(function() {
         var stub = this.sinon.stub();
         stub.withArgs('foo')
@@ -191,6 +196,128 @@ describe('module/checkBuild', function() {
         })
         .then(function() {
           assert.notCalled(diffBrowserSpy);
+        });
+      });
+    });
+  });
+
+  describe('#diffBrowser', function() {
+    var diffImageSpy;
+
+    describe('for browsers with same images', function() {
+      beforeEach(function() {
+        storageStub.getImagesForShaBrowser = this.sinon.stub()
+          .resolves(['image1.png', 'image2.png']);
+
+        diffImageSpy = this.sinon.spy();
+        checkBuild._diffImage = diffImageSpy;
+      });
+
+      it('calls diffImage for both images', function() {
+        return checkBuild._diffBrowser({
+          head: 'foo',
+          base: 'bar',
+          browser: 'Chrome'
+        })
+        .then(function() {
+          assert.calledOnce(diffImageSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Chrome',
+            image: 'image1.png'
+          }));
+
+          assert.calledOnce(diffImageSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Chrome',
+            image: 'image2.png'
+          }));
+        });
+      });
+    });
+
+    describe('for browsers with different images with overlap', function() {
+      beforeEach(function() {
+        var stub = this.sinon.stub();
+        stub.withArgs({
+          sha: 'foo',
+          browser: 'Chrome'
+        })
+        .resolves(['image1.png', 'image2.png']);
+
+        stub.withArgs({
+          sha: 'bar',
+          browser: 'Chrome'
+        })
+        .resolves(['image2.png', 'image3.png']);
+
+        storageStub.getImagesForShaBrowser = stub;
+
+        diffImageSpy = this.sinon.spy();
+        checkBuild._diffImage = diffImageSpy;
+      });
+
+      it('calls diffImage for only common images', function() {
+        return checkBuild._diffBrowser({
+          head: 'foo',
+          base: 'bar',
+          browser: 'Chrome'
+        })
+        .then(function() {
+          assert.calledOnce(diffImageSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Chrome',
+            image: 'image2.png'
+          }));
+
+          assert.notCalled(diffImageSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Chrome',
+            image: 'image1.png'
+          }));
+
+          assert.notCalled(diffImageSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Chrome',
+            image: 'image3.png'
+          }));
+        });
+      });
+    });
+
+    describe('for browsers with different images with no overlap', function() {
+      beforeEach(function() {
+        var stub = this.sinon.stub();
+        stub.withArgs({
+          sha: 'foo',
+          browser: 'Chrome'
+        })
+        .resolves(['image1.png', 'image2.png']);
+
+        stub.withArgs({
+          sha: 'bar',
+          browser: 'Chrome'
+        })
+        .resolves(['image3.png', 'image4.png']);
+
+        storageStub.getImagesForShaBrowser = stub;
+
+        diffImageSpy = this.sinon.spy();
+        checkBuild._diffImage = diffImageSpy;
+      });
+
+      it('calls diffImage for only common images', function() {
+        return checkBuild._diffBrowser({
+          head: 'foo',
+          base: 'bar',
+          browser: 'Chrome'
+        })
+        .then(function() {
+          assert.notCalled(diffImageSpy);
         });
       });
     });
