@@ -12,11 +12,6 @@ var buildsPath = path.join(dataPath, 'builds');
 var shasPath = path.join(dataPath, 'shas');
 
 var Storage = {
-  init: function() {
-    fs.ensureDirSync(buildsPath);
-    fs.ensureDirSync(shasPath);
-  },
-
   /**
   options.head string
   options.base string

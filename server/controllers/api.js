@@ -13,9 +13,7 @@ var dirHelper = require('../utils/dirHelper');
 
 var storage = require('../utils/storage');
 
-function Api() {
-  storage.init();
-}
+function Api() {}
 
 Api.prototype = {
   startBuild: function(req, res) {
