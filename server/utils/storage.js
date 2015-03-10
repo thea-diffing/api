@@ -5,6 +5,7 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
 var tar = require('tar-fs');
+var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var dirHelper = require('./dirHelper');
 
 var root = path.join(__dirname, '..', '..');
@@ -114,6 +115,30 @@ var Storage = {
 
     var browserPath = path.join(shasPath, sha, browser);
     return dirHelper.readFiles(browserPath);
+  },
+
+  /*
+  options.sha string
+  options.browser string
+  options.image string
+
+  returns Buffer
+  */
+  getImage: function(options) {
+    var sha = options.sha;
+    var browser = options.browser;
+    var image = options.image;
+
+    var imagePath = path.join(shasPath, sha, browser, image);
+
+    return PNGImage.readImageAsync(imagePath)
+    .then(function(image) {
+      return {
+        width: image.getWidth(),
+        height: image.getHeight(),
+        data: image.getBlob()
+      };
+    });
   }
 };
 

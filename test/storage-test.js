@@ -251,4 +251,37 @@ describe('module/storage', function() {
       });
     });
   });
+
+  describe('#getImage', function() {
+    it('should return width, height, and data', function() {
+      var imageData = TarHelper.createImage();
+
+      var sha = 'foo';
+      var browser = 'Safari';
+      var image = 'baz.png';
+
+      var browserPath = path.join(storage._shasPath, sha, browser);
+      var imagePath = path.join(browserPath, image);
+
+      return fs.ensureDirAsync(browserPath)
+      .then(function() {
+        return imageData.writeImageAsync(imagePath);
+      })
+      .then(function() {
+        return storage.getImage({
+          sha: sha,
+          browser: browser,
+          image: image
+        });
+      })
+      .then(function(data) {
+        assert.deepEqual(data, {
+          width: imageData.getWidth(),
+          height: imageData.getHeight(),
+          data: imageData.getBlob()
+        });
+      });
+
+    });
+  });
 });
