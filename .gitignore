@@ -4,3 +4,4 @@ backup_repositories/
 npm-debug.log
 builds/
 data/
+coverage/
