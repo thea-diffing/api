@@ -92,13 +92,106 @@ describe('module/checkBuild', function() {
 
   describe('#diffCommonBrowsers', function() {
     describe('for build with same browsers', function() {
+      var diffBrowserSpy;
+
       beforeEach(function() {
         storageStub.getBrowsersForSha = this.sinon.stub()
           .resolves(['Chrome', 'Firefox']);
+
+        diffBrowserSpy = this.sinon.spy();
+        checkBuild._diffBrowser = diffBrowserSpy;
       });
 
-      it('calls diffBrowsers for both browsers', function() {
-        // checkBuild._diffCommonBrowsers()
+      it('calls diffBrowser for both browsers', function() {
+        return checkBuild._diffCommonBrowsers({
+          head: 'foo',
+          base: 'bar'
+        })
+        .then(function() {
+          assert.calledOnce(diffBrowserSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Chrome'
+          }));
+
+          assert.calledOnce(diffBrowserSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Firefox'
+          }));
+        });
+      });
+    });
+
+    describe('for build with different browsers with overlap', function() {
+      var diffBrowserSpy;
+
+      beforeEach(function() {
+        var stub = this.sinon.stub();
+        stub.withArgs('foo')
+          .resolves(['Chrome', 'Firefox']);
+
+        stub.withArgs('bar')
+          .resolves(['Internet Explorer', 'Chrome']);
+
+        storageStub.getBrowsersForSha = stub;
+
+        diffBrowserSpy = this.sinon.spy();
+        checkBuild._diffBrowser = diffBrowserSpy;
+      });
+
+      it('calls diffBrowser for only common browser', function() {
+        return checkBuild._diffCommonBrowsers({
+          head: 'foo',
+          base: 'bar'
+        })
+        .then(function() {
+          assert.calledOnce(diffBrowserSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Chrome'
+          }));
+
+          assert.notCalled(diffBrowserSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Firefox'
+          }));
+
+          assert.notCalled(diffBrowserSpy.withArgs({
+            head: 'foo',
+            base: 'bar',
+            browser: 'Internet Explorer'
+          }));
+        });
+      });
+    });
+
+    describe('for build with different browsers with no overlap', function() {
+      var diffBrowserSpy;
+
+      beforeEach(function() {
+        var stub = this.sinon.stub();
+        stub.withArgs('foo')
+          .resolves(['Safari', 'Firefox']);
+
+        stub.withArgs('bar')
+          .resolves(['Internet Explorer', 'Chrome']);
+
+        storageStub.getBrowsersForSha = stub;
+
+        diffBrowserSpy = this.sinon.spy();
+        checkBuild._diffBrowser = diffBrowserSpy;
+      });
+
+      it('calls diffBrowser for only common browser', function() {
+        return checkBuild._diffCommonBrowsers({
+          head: 'foo',
+          base: 'bar'
+        })
+        .then(function() {
+          assert.notCalled(diffBrowserSpy);
+        });
       });
     });
   });

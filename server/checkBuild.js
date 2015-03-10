@@ -29,6 +29,9 @@ function buildReceived(payload) {
       head: buildInfo.head,
       base: buildInfo.base
     });
+  })
+  .then(function(result) {
+
   });
 }
 
@@ -51,7 +54,7 @@ function diffCommonBrowsers(options) {
     });
 
     var imagePromises = commonBrowsers.map(function(browser) {
-      return generateDiffImages({
+      return diffBrowser({
         head: head,
         base: base,
         browser: browser
@@ -59,15 +62,6 @@ function diffCommonBrowsers(options) {
     });
 
     return Bluebird.all(imagePromises);
-
-    // if head browsers === base browsers, obv
-    // if head browsers is subset of base browsers
-    //    use head browsers
-    // if base browsers is subset of head browsers
-    //    use base browsers
-
-    // use only the browsers they have in common
-
   });
 }
 
@@ -76,7 +70,9 @@ options.head string
 options.base string
 options.browser string
 */
-function generateDiffImages() {}
+function diffBrowser(options) {
+
+}
 
 dispatcher.on('buildReceived', buildReceived);
 
@@ -91,6 +87,15 @@ if (process.env.NODE_ENV === 'test') {
     },
     set: function(newFunc) {
       diffCommonBrowsers = newFunc;
+    }
+  });
+
+  Object.defineProperty(visible, '_diffBrowser', {
+    get: function() {
+      return diffBrowser;
+    },
+    set: function(newFunc) {
+      diffBrowser = newFunc;
     }
   });
 
