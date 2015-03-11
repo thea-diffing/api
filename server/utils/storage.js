@@ -92,6 +92,30 @@ var Storage = {
   },
 
   /*
+  id string
+  options.status string
+  [options.diff object]
+  */
+  updateBuildInfo: function(id, options) {
+    var buildFile = path.join(buildsPath, id, 'build.json');
+    var status = options.status;
+    var diff = options.diff;
+
+    return fs.readJSONAsync(buildFile)
+    .then(function(data) {
+      data.status = status;
+
+      if (status === 'success') {
+        delete data.diff;
+      } else if (status === 'failure') {
+        data.diff = diff;
+      }
+
+      return fs.outputJSONAsync(buildFile, data);
+    });
+  },
+
+  /*
   sha string
   */
   getBrowsersForSha: function(sha) {

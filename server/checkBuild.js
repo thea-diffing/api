@@ -30,11 +30,20 @@ function buildReceived(payload) {
       build: buildId,
       head: buildInfo.head,
       base: buildInfo.base
+    })
+    .then(function(result) {
+      if (Object.keys(result).length > 0) {
+        return storage.updateBuild(buildId, {
+          status: 'failed',
+          diff: result
+        });
+      } else {
+        return storage.updateBuild(buildId, {
+          status: 'success'
+        });
+      }
     });
-  })
-  .then(function(result) {
-
-  })
+  });
 }
 
 /*

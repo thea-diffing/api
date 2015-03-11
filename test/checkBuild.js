@@ -39,6 +39,10 @@ describe('module/checkBuild', function() {
   });
 
   describe('#buildReceived', function() {
+    beforeEach(function() {
+      storageStub.updateBuild = this.sinon.stub();
+    });
+
     describe('with invalid payload', function() {
       it('should throw', function() {
         return assert.isRejected(checkBuild._buildReceived());
@@ -46,30 +50,25 @@ describe('module/checkBuild', function() {
     });
 
     describe('with completed build', function() {
+      var diffCommonBrowsersStub;
+
       beforeEach(function() {
         storageStub.getBrowsersForSha = this.sinon.stub()
         .withArgs('head')
         .resolves(['Chrome', 'Firefox']);
-      });
 
-      it('should fulfill', function() {
-        checkBuild._diffCommonBrowsers = this.sinon.stub()
-        .resolves(true);
+        diffCommonBrowsersStub = this.sinon.stub()
+        .resolves({});
 
-        return assert.isFulfilled(checkBuild._buildReceived({
-          id: 'head'
-        }));
+        checkBuild._diffCommonBrowsers = diffCommonBrowsersStub;
       });
 
       it('should call diffCommonBrowsers', function() {
-        var spy = this.sinon.spy();
-        checkBuild._diffCommonBrowsers = spy;
-
         return checkBuild._buildReceived({
           id: 'build'
         })
         .then(function() {
-          assert.calledWithExactly(spy, {
+          assert.calledWithExactly(diffCommonBrowsersStub, {
             build: 'build',
             head: 'head',
             base: 'base'
@@ -78,11 +77,55 @@ describe('module/checkBuild', function() {
       });
 
       describe('with diffs', function() {
-        it('should fail');
+        it('should set build status failed and save diffs', function() {
+          var diff = {
+            Chrome: [
+              'image1.png',
+              'image2.png'
+            ]
+          };
+
+          diffCommonBrowsersStub.withArgs({
+            build: 'build',
+            head: 'head',
+            base: 'base'
+          })
+          .resolves(diff);
+
+          return checkBuild._buildReceived({
+            id: 'build'
+          })
+          .then(function() {
+            assert.calledOnce(storageStub.updateBuild
+              .withArgs('build', {
+                status: 'failed',
+                diff: diff
+              })
+            );
+          });
+        });
       });
 
       describe('without diffs', function() {
-        it('should succeed');
+        it('should write to build file success with no diffs', function() {
+          diffCommonBrowsersStub.withArgs({
+            build: 'build',
+            head: 'head',
+            base: 'base'
+          })
+          .resolves({});
+
+          return checkBuild._buildReceived({
+            id: 'build'
+          })
+          .then(function() {
+            assert.calledOnce(storageStub.updateBuild
+              .withArgs('build', {
+                status: 'success'
+              })
+            );
+          });
+        });
       });
     });
 

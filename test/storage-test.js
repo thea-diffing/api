@@ -32,8 +32,8 @@ describe('module/storage', function() {
 
   describe('#startBuild', function() {
     var buildOptions = {
-      head: 'abasdf',
-      base: 'bjasdf',
+      head: 'head',
+      base: 'base',
       numBrowsers: 3
     };
 
@@ -73,7 +73,7 @@ describe('module/storage', function() {
     });
 
     it('should', function() {
-      var sha = 'asdfasdf';
+      var sha = 'sha';
       var browser = 'Chrome 28';
       var expectedSavePath = path.join(sha, browser);
 
@@ -95,8 +95,8 @@ describe('module/storage', function() {
 
   describe('#hasBuild', function() {
     var buildOptions = {
-        head: 'abasdf',
-        base: 'bjasdf',
+        head: 'head',
+        base: 'base',
         numBrowsers: 3
       };
 
@@ -135,8 +135,8 @@ describe('module/storage', function() {
 
     it('should return build info', function() {
       var buildOptions = {
-        head: 'abasdf',
-        base: 'bjasdf',
+        head: 'head',
+        base: 'base',
         numBrowsers: 3
       };
 
@@ -154,6 +154,75 @@ describe('module/storage', function() {
         assert.isString(data.id);
         assert.equal(data.status, 'pending');
         assert.shallowDeepEqual(data, buildOptions);
+      });
+    });
+  });
+
+  describe('#updateBuildInfo', function() {
+    var buildId;
+
+    beforeEach(function() {
+      var buildOptions = {
+        head: 'head',
+        base: 'base',
+        numBrowsers: 3
+      };
+
+      return storage.startBuild(buildOptions)
+      .then(function(data) {
+        buildId = data.id;
+      });
+    });
+
+    describe('with success', function() {
+      beforeEach(function() {
+        return storage.updateBuildInfo(buildId, {
+          status: 'success'
+        });
+      });
+
+      it('should write success', function() {
+        return storage.getBuildInfo(buildId)
+        .then(function(buildInfo) {
+          assert.equal(buildInfo.status, 'success');
+        });
+      });
+
+      it('should not have a diff', function() {
+        return storage.getBuildInfo(buildId)
+        .then(function(buildInfo) {
+          assert.isUndefined(buildInfo.diff);
+        });
+      });
+    });
+
+    describe('with failure', function() {
+      var newBuildInfo;
+
+      beforeEach(function() {
+        newBuildInfo = {
+          status: 'failure',
+          diff: {
+            Chrome: ['image1.png,', 'image2.png'],
+            Firefox: ['image1.png']
+          }
+        };
+
+        return storage.updateBuildInfo(buildId, newBuildInfo);
+      });
+
+      it('should write failure', function() {
+        return storage.getBuildInfo(buildId)
+        .then(function(buildInfo) {
+          assert.equal(buildInfo.status, 'failure');
+        });
+      });
+
+      it('should have a diff', function() {
+        return storage.getBuildInfo(buildId)
+        .then(function(buildInfo) {
+          assert.deepEqual(buildInfo.diff, newBuildInfo.diff);
+        });
       });
     });
   });
