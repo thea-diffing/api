@@ -425,8 +425,12 @@ describe('module/checkBuild', function() {
     });
 
     describe('with generateDiff', function() {
+      var imageBuffer;
+
       beforeEach(function() {
         storageStub.saveDiffImage = this.sinon.stub().resolves();
+
+        imageBuffer = new Buffer([]);
       });
 
       describe('distance greater than threshold', function() {
@@ -434,7 +438,7 @@ describe('module/checkBuild', function() {
           differStub.generateDiff = this.sinon.stub()
           .resolves({
             distance: 0.3,
-            image: new Buffer([])
+            image: imageBuffer
           });
         });
 
@@ -451,7 +455,7 @@ describe('module/checkBuild', function() {
               build: 'build',
               browser: 'Chrome',
               imageName: 'navbar.png',
-              imageData: new Buffer([])
+              imageData: imageBuffer
             }));
           });
         });
@@ -474,7 +478,7 @@ describe('module/checkBuild', function() {
           differStub.generateDiff = this.sinon.stub()
           .resolves({
             distance: 0,
-            image: new Buffer([])
+            image: imageBuffer
           });
         });
 
@@ -491,7 +495,7 @@ describe('module/checkBuild', function() {
               build: 'build',
               browser: 'Chrome',
               imageName: 'navbar.png',
-              imageData: new Buffer([])
+              imageData: imageBuffer
             }));
           });
         });
