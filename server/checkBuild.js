@@ -3,6 +3,7 @@
 var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
+var differ = require('./utils/differ');
 
 /*
 payload.id string
@@ -26,6 +27,7 @@ function buildReceived(payload) {
     }
 
     return diffCommonBrowsers({
+      build: buildId,
       head: buildInfo.head,
       base: buildInfo.base
     });
@@ -36,11 +38,12 @@ function buildReceived(payload) {
 }
 
 /*
-options.buildInfo
-  options.buildInfo.head
-  options.buildInfo.base
+options.build string
+options.head string
+options.base string
 */
 function diffCommonBrowsers(options) {
+  var build = options.build;
   var head = options.head;
   var base = options.base;
 
@@ -55,6 +58,7 @@ function diffCommonBrowsers(options) {
 
     var imagePromises = commonBrowsers.map(function(browser) {
       return diffBrowser({
+        build: build,
         head: head,
         base: base,
         browser: browser
@@ -66,11 +70,13 @@ function diffCommonBrowsers(options) {
 }
 
 /*
+options.build string
 options.head string
 options.base string
 options.browser string
 */
 function diffBrowser(options) {
+  var build = options.build;
   var head = options.head;
   var base = options.base;
   var browser = options.browser;
@@ -92,6 +98,7 @@ function diffBrowser(options) {
 
     var imagePromises = commonImages.map(function(image) {
       return diffImage({
+        build: build,
         head: head,
         base: base,
         browser: browser,
@@ -104,13 +111,59 @@ function diffBrowser(options) {
 }
 
 /*
+options.build string
 options.head string
 options.base string
 options.browser string
 options.image string
+
+resolves
+{
+  diff: true/false
+}
 */
 function diffImage(options) {
-  // console.log('foo', options);
+  var build = options.build;
+  var head = options.head;
+  var base = options.base;
+  var browser = options.browser;
+  var image = options.image;
+
+  return Bluebird.all([
+    storage.getImage({
+      sha: head,
+      browser: browser,
+      image: image
+    }),
+    storage.getImage({
+      sha: base,
+      browser: browser,
+      image: image
+    })
+  ])
+  .spread(function(headImage, baseImage) {
+    return differ.generateDiff(headImage, baseImage)
+    .then(function(data) {
+
+      if (data.distance > 0) {
+        return storage.saveDiffImage({
+          build: build,
+          browser: browser,
+          imageName: image,
+          imageData: data.image
+        })
+        .then(function() {
+          return {
+            diff: true
+          };
+        });
+      } else {
+        return {
+          diff: false
+        };
+      }
+    });
+  });
 }
 
 dispatcher.on('buildReceived', buildReceived);

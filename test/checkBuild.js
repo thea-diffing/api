@@ -7,10 +7,15 @@ require('sinon-as-promised')(Bluebird);
 
 describe('module/checkBuild', function() {
   var storageStub = {};
+  var differStub = {};
   var checkBuild;
 
   beforeEach(function() {
     storageStub = {
+      '@noCallThru': true
+    };
+
+    differStub = {
       '@noCallThru': true
     };
 
@@ -28,6 +33,7 @@ describe('module/checkBuild', function() {
 
     checkBuild = proxyquire('../server/checkBuild', {
       './utils/storage': storageStub,
+      './utils/differ': differStub,
       './dispatcher': dispatcherStub
     });
   });
@@ -61,10 +67,11 @@ describe('module/checkBuild', function() {
         checkBuild._diffCommonBrowsers = spy;
 
         return checkBuild._buildReceived({
-          id: 'foo'
+          id: 'build'
         })
         .then(function() {
           assert.calledWithExactly(spy, {
+            build: 'build',
             head: 'foo',
             base: 'bar'
           });
@@ -113,17 +120,20 @@ describe('module/checkBuild', function() {
 
       it('calls diffBrowser for both browsers', function() {
         return checkBuild._diffCommonBrowsers({
+          build: 'build',
           head: 'foo',
           base: 'bar'
         })
         .then(function() {
           assert.calledOnce(diffBrowserSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Chrome'
           }));
 
           assert.calledOnce(diffBrowserSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Firefox'
@@ -149,23 +159,27 @@ describe('module/checkBuild', function() {
 
       it('calls diffBrowser for only common browser', function() {
         return checkBuild._diffCommonBrowsers({
+          build: 'build',
           head: 'foo',
           base: 'bar'
         })
         .then(function() {
           assert.calledOnce(diffBrowserSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Chrome'
           }));
 
           assert.notCalled(diffBrowserSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Firefox'
           }));
 
           assert.notCalled(diffBrowserSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Internet Explorer'
@@ -191,6 +205,7 @@ describe('module/checkBuild', function() {
 
       it('calls diffBrowser for only common browser', function() {
         return checkBuild._diffCommonBrowsers({
+          build: 'build',
           head: 'foo',
           base: 'bar'
         })
@@ -215,12 +230,14 @@ describe('module/checkBuild', function() {
 
       it('calls diffImage for both images', function() {
         return checkBuild._diffBrowser({
+          build: 'build',
           head: 'foo',
           base: 'bar',
           browser: 'Chrome'
         })
         .then(function() {
           assert.calledOnce(diffImageSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Chrome',
@@ -228,6 +245,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.calledOnce(diffImageSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Chrome',
@@ -260,12 +278,14 @@ describe('module/checkBuild', function() {
 
       it('calls diffImage for only common images', function() {
         return checkBuild._diffBrowser({
+          build: 'build',
           head: 'foo',
           base: 'bar',
           browser: 'Chrome'
         })
         .then(function() {
           assert.calledOnce(diffImageSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Chrome',
@@ -273,6 +293,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.notCalled(diffImageSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Chrome',
@@ -280,6 +301,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.notCalled(diffImageSpy.withArgs({
+            build: 'build',
             head: 'foo',
             base: 'bar',
             browser: 'Chrome',
@@ -310,8 +332,9 @@ describe('module/checkBuild', function() {
         checkBuild._diffImage = diffImageSpy;
       });
 
-      it('calls diffImage for only common images', function() {
+      it('does not call diffImage', function() {
         return checkBuild._diffBrowser({
+          build: 'build',
           head: 'foo',
           base: 'bar',
           browser: 'Chrome'
@@ -320,6 +343,172 @@ describe('module/checkBuild', function() {
           assert.notCalled(diffImageSpy);
         });
       });
+    });
+  });
+
+  describe('#diffImage', function() {
+    var generateDiffStub;
+    var options;
+
+    beforeEach(function() {
+      options = {
+        build: 'build',
+        head: 'foo',
+        base: 'bar',
+        browser: 'Safari',
+        image: 'navbar.png'
+      };
+
+      generateDiffStub = this.sinon.stub();
+      generateDiffStub.withArgs()
+      .resolves({
+        width: 200
+      });
+
+      differStub.generateDiff = generateDiffStub;
+
+      storageStub.getImage = this.sinon.stub();
+    });
+
+    it('calls getImage with different images', function() {
+      return checkBuild._diffImage(options)
+      .then(function() {
+        assert.calledOnce(storageStub.getImage
+          .withArgs({
+            sha: options.head,
+            browser: options.browser,
+            image: options.image
+          }));
+
+        assert.calledOnce(storageStub.getImage
+          .withArgs({
+            sha: options.base,
+            browser: options.browser,
+            image: options.image
+          }));
+      });
+    });
+
+    it('calls generateDiff with results from head and base', function() {
+      var image1Result = {
+        width: 200,
+        height: 300,
+        buffer: new Buffer([1])
+      };
+
+      var image2Result = {
+        width: 300,
+        height: 200,
+        buffer: new Buffer([])
+      };
+
+      storageStub.getImage.withArgs({
+        sha: options.head,
+        browser: options.browser,
+        image: options.image
+      })
+      .resolves(image1Result);
+
+      storageStub.getImage.withArgs({
+        sha: options.base,
+        browser: options.browser,
+        image: options.image
+      })
+      .resolves(image2Result);
+
+      return checkBuild._diffImage(options)
+      .then(function() {
+        assert.calledOnce(
+          generateDiffStub.withArgs(image1Result, image2Result)
+        );
+      });
+    });
+
+    describe('with generateDiff', function() {
+      beforeEach(function() {
+        storageStub.saveDiffImage = this.sinon.stub().resolves();
+      });
+
+      describe('distance greater than threshold', function() {
+        beforeEach(function() {
+          differStub.generateDiff = this.sinon.stub()
+          .resolves({
+            distance: 0.3,
+            image: new Buffer([])
+          });
+        });
+
+        it('calls saveDiffImage', function() {
+          return checkBuild._diffImage({
+            build: 'build',
+            head: 'head',
+            base: 'base',
+            browser: 'Chrome',
+            image: 'navbar.png'
+          })
+          .then(function() {
+            assert.calledOnce(storageStub.saveDiffImage.withArgs({
+              build: 'build',
+              browser: 'Chrome',
+              imageName: 'navbar.png',
+              imageData: new Buffer([])
+            }));
+          });
+        });
+
+        it('resolves with diff field true', function() {
+          return assert.becomes(checkBuild._diffImage({
+            build: 'build',
+            head: 'head',
+            base: 'base',
+            browser: 'Chrome',
+            image: 'navbar.png'
+          }), {
+            diff: true
+          });
+        });
+      });
+
+      describe('distance below threshold', function() {
+        beforeEach(function() {
+          differStub.generateDiff = this.sinon.stub()
+          .resolves({
+            distance: 0,
+            image: new Buffer([])
+          });
+        });
+
+        it('does not call saveDiffImage', function() {
+          return checkBuild._diffImage({
+            build: 'build',
+            head: 'head',
+            base: 'base',
+            browser: 'Chrome',
+            image: 'navbar.png'
+          })
+          .then(function() {
+            assert.notCalled(storageStub.saveDiffImage.withArgs({
+              build: 'build',
+              browser: 'Chrome',
+              imageName: 'navbar.png',
+              imageData: new Buffer([])
+            }));
+          });
+        });
+
+        it('resolves with diff field false', function() {
+          return assert.becomes(checkBuild._diffImage({
+            build: 'build',
+            head: 'head',
+            base: 'base',
+            browser: 'Chrome',
+            image: 'navbar.png'
+          }), {
+            diff: false
+          });
+        });
+      });
+
     });
   });
 });

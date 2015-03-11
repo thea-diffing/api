@@ -139,6 +139,26 @@ var Storage = {
         data: image.getBlob()
       };
     });
+  },
+
+  /*
+  options.build string
+  options.browser string
+  options.imageName string
+  options.imageData Buffer
+  */
+  saveDiffImage: function(options) {
+    var build = options.build;
+    var browser = options.browser;
+    var imageName = options.imageName;
+    var imageData = options.imageData;
+
+    var imagePath = path.join(buildsPath, build, browser, imageName);
+
+    return fs.outputFileAsync(imagePath, imageData)
+    .then(function() {
+      // Keep any data from returning
+    });
   }
 };
 

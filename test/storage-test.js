@@ -281,7 +281,38 @@ describe('module/storage', function() {
           data: imageData.getBlob()
         });
       });
+    });
+  });
 
+  describe('#saveDiffImage', function() {
+    var options;
+
+    beforeEach(function() {
+      options = {
+        build: 'build',
+        browser: 'browser',
+        imageName: 'navbar.png',
+        imageData: new Buffer([])
+      };
+    });
+
+    it('should save a file', function() {
+      var diffPath = path.join(storage._buildsPath, options.build, options.browser, options.imageName);
+
+      return storage.saveDiffImage(options)
+      .then(function() {
+        return fs.statAsync(diffPath);
+      })
+      .then(function(file) {
+        return assert(file.isFile());
+      });
+    });
+
+    it('should swallow any output', function() {
+      return storage.saveDiffImage(options)
+      .then(function(output) {
+        assert.isUndefined(output);
+      });
     });
   });
 });
