@@ -21,8 +21,8 @@ describe('module/checkBuild', function() {
 
     storageStub.getBuildInfo = this.sinon.stub()
     .resolves({
-      head: 'foo',
-      base: 'bar',
+      head: 'head',
+      base: 'base',
       numBrowsers: 2
     });
 
@@ -48,7 +48,7 @@ describe('module/checkBuild', function() {
     describe('with completed build', function() {
       beforeEach(function() {
         storageStub.getBrowsersForSha = this.sinon.stub()
-        .withArgs('foo')
+        .withArgs('head')
         .resolves(['Chrome', 'Firefox']);
       });
 
@@ -57,9 +57,8 @@ describe('module/checkBuild', function() {
         .resolves(true);
 
         return assert.isFulfilled(checkBuild._buildReceived({
-          id: 'foo'
+          id: 'head'
         }));
-
       });
 
       it('should call diffCommonBrowsers', function() {
@@ -72,23 +71,31 @@ describe('module/checkBuild', function() {
         .then(function() {
           assert.calledWithExactly(spy, {
             build: 'build',
-            head: 'foo',
-            base: 'bar'
+            head: 'head',
+            base: 'base'
           });
         });
+      });
+
+      describe('with diffs', function() {
+        it('should fail');
+      });
+
+      describe('without diffs', function() {
+        it('should succeed');
       });
     });
 
     describe('with non-completed build', function() {
       beforeEach(function() {
         storageStub.getBrowsersForSha = this.sinon.stub()
-        .withArgs('foo')
+        .withArgs('head')
         .resolves(['Chrome']);
       });
 
       it('should not throw', function() {
         return assert.isFulfilled(checkBuild._buildReceived({
-          id: 'foo'
+          id: 'head'
         }));
       });
 
@@ -97,7 +104,7 @@ describe('module/checkBuild', function() {
         checkBuild._diffCommonBrowsers = spy;
 
         return checkBuild._buildReceived({
-          id: 'foo'
+          id: 'head'
         })
         .then(function() {
           assert.callCount(spy, 0);
@@ -407,8 +414,8 @@ describe('module/checkBuild', function() {
     beforeEach(function() {
       options = {
         build: 'build',
-        head: 'foo',
-        base: 'bar',
+        head: 'head',
+        base: 'base',
         browser: 'Safari',
         image: 'navbar.png'
       };
