@@ -62,10 +62,28 @@ function diffCommonBrowsers(options) {
         head: head,
         base: base,
         browser: browser
+      })
+      .then(function(result) {
+        if (result.length > 0) {
+          return {
+            browser: browser,
+            images: result
+          };
+        }
       });
     });
 
-    return Bluebird.all(imagePromises);
+    return Bluebird.all(imagePromises)
+    .then(function(browsers) {
+      return browsers.filter(function(browser) {
+        return browser !== undefined;
+      })
+      .reduce(function(obj, browser) {
+        obj[browser.browser] = browser.images;
+
+        return obj;
+      }, {});
+    });
   });
 }
 
