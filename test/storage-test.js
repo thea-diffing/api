@@ -343,12 +343,11 @@ describe('module/storage', function() {
           image: image
         });
       })
-      .then(function(data) {
-        assert.deepEqual(data, {
-          width: imageData.getWidth(),
-          height: imageData.getHeight(),
-          data: imageData.getBlob()
-        });
+      .then(function(image) {
+        assert.isDefined(image.width);
+        assert.isDefined(image.height);
+        assert.isDefined(image.data);
+        assert.isDefined(image.gamma);
       });
     });
   });
@@ -361,7 +360,7 @@ describe('module/storage', function() {
         build: 'build',
         browser: 'browser',
         imageName: 'navbar.png',
-        imageData: new Buffer([])
+        imageData: TarHelper.createImage().getImage()
       };
     });
 

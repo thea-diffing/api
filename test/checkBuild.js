@@ -4,6 +4,7 @@ var proxyquire = require('proxyquire');
 var Bluebird = require('bluebird');
 require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
+var TarHelper = require('../server/utils/tarHelper');
 
 describe('module/checkBuild', function() {
   var storageStub = {};
@@ -494,17 +495,8 @@ describe('module/checkBuild', function() {
     });
 
     it('calls generateDiff with results from head and base', function() {
-      var image1Result = {
-        width: 200,
-        height: 300,
-        buffer: new Buffer([1])
-      };
-
-      var image2Result = {
-        width: 300,
-        height: 200,
-        buffer: new Buffer([])
-      };
+      var image1Result = TarHelper.createImage().getImage();
+      var image2Result = TarHelper.createImage().getImage();
 
       storageStub.getImage.withArgs({
         sha: options.head,
@@ -528,13 +520,13 @@ describe('module/checkBuild', function() {
       });
     });
 
-    describe('with generateDiff', function() {
+    describe('with diff', function() {
       var imageBuffer;
 
       beforeEach(function() {
         storageStub.saveDiffImage = this.sinon.stub().resolves();
 
-        imageBuffer = new Buffer([]);
+        imageBuffer = TarHelper.createImage().getImage();
       });
 
       describe('distance greater than threshold', function() {

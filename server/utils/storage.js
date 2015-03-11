@@ -146,7 +146,7 @@ var Storage = {
   options.browser string
   options.image string
 
-  returns Buffer
+  resolves pngjs
   */
   getImage: function(options) {
     var sha = options.sha;
@@ -157,11 +157,7 @@ var Storage = {
 
     return PNGImage.readImageAsync(imagePath)
     .then(function(image) {
-      return {
-        width: image.getWidth(),
-        height: image.getHeight(),
-        data: image.getBlob()
-      };
+      return image.getImage();
     });
   },
 
@@ -169,7 +165,7 @@ var Storage = {
   options.build string
   options.browser string
   options.imageName string
-  options.imageData Buffer
+  options.imageData pngjs
   */
   saveDiffImage: function(options) {
     var build = options.build;
