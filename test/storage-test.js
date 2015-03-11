@@ -5,12 +5,15 @@ var Bluebird = require('bluebird');
 var path = require('path');
 var mockFs = require('mock-fs');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
+var proxyquire = require('proxyquire');
+require('mocha-sinon');
+require('sinon-as-promised')(Bluebird);
 
 var storage = require('../server/utils/storage');
 var TarHelper = require('../server/utils/tarHelper');
 var DirHelper = require('../server/utils/dirHelper');
 
-describe('Storage', function() {
+describe('module/storage', function() {
   beforeEach(function() {
     mockFs();
   });
@@ -27,10 +30,10 @@ describe('Storage', function() {
     assert(storage._shasPath !== undefined);
   });
 
-  describe('startBuild', function() {
+  describe('#startBuild', function() {
     var buildOptions = {
-      head: 'abasdf',
-      base: 'bjasdf',
+      head: 'head',
+      base: 'base',
       numBrowsers: 3
     };
 
@@ -62,7 +65,7 @@ describe('Storage', function() {
     });
   });
 
-  describe('saveImages', function() {
+  describe('#saveImages', function() {
     var tarPath = path.join(__dirname, 'foo.tar.gz');
 
     beforeEach(function() {
@@ -70,7 +73,7 @@ describe('Storage', function() {
     });
 
     it('should', function() {
-      var sha = 'asdfasdf';
+      var sha = 'sha';
       var browser = 'Chrome 28';
       var expectedSavePath = path.join(sha, browser);
 
@@ -90,10 +93,10 @@ describe('Storage', function() {
     });
   });
 
-  describe('hasBuild', function() {
+  describe('#hasBuild', function() {
     var buildOptions = {
-        head: 'abasdf',
-        base: 'bjasdf',
+        head: 'head',
+        base: 'base',
         numBrowsers: 3
       };
 
@@ -125,15 +128,15 @@ describe('Storage', function() {
     });
   });
 
-  describe('getBuildInfo', function() {
+  describe('#getBuildInfo', function() {
     it('should reject non existent build', function() {
       assert.isRejected(storage.getBuildInfo('foo'), /Unknown Build/);
     });
 
     it('should return build info', function() {
       var buildOptions = {
-        head: 'abasdf',
-        base: 'bjasdf',
+        head: 'head',
+        base: 'base',
         numBrowsers: 3
       };
 
@@ -155,7 +158,76 @@ describe('Storage', function() {
     });
   });
 
-  describe('getBrowsersForSha', function() {
+  describe('#updateBuildInfo', function() {
+    var buildId;
+
+    beforeEach(function() {
+      var buildOptions = {
+        head: 'head',
+        base: 'base',
+        numBrowsers: 3
+      };
+
+      return storage.startBuild(buildOptions)
+      .then(function(data) {
+        buildId = data.id;
+      });
+    });
+
+    describe('with success', function() {
+      beforeEach(function() {
+        return storage.updateBuildInfo(buildId, {
+          status: 'success'
+        });
+      });
+
+      it('should write success', function() {
+        return storage.getBuildInfo(buildId)
+        .then(function(buildInfo) {
+          assert.equal(buildInfo.status, 'success');
+        });
+      });
+
+      it('should not have a diff', function() {
+        return storage.getBuildInfo(buildId)
+        .then(function(buildInfo) {
+          assert.isUndefined(buildInfo.diff);
+        });
+      });
+    });
+
+    describe('with failure', function() {
+      var newBuildInfo;
+
+      beforeEach(function() {
+        newBuildInfo = {
+          status: 'failure',
+          diff: {
+            Chrome: ['image1.png,', 'image2.png'],
+            Firefox: ['image1.png']
+          }
+        };
+
+        return storage.updateBuildInfo(buildId, newBuildInfo);
+      });
+
+      it('should write failure', function() {
+        return storage.getBuildInfo(buildId)
+        .then(function(buildInfo) {
+          assert.equal(buildInfo.status, 'failure');
+        });
+      });
+
+      it('should have a diff', function() {
+        return storage.getBuildInfo(buildId)
+        .then(function(buildInfo) {
+          assert.deepEqual(buildInfo.diff, newBuildInfo.diff);
+        });
+      });
+    });
+  });
+
+  describe('#getBrowsersForSha', function() {
     var dirPath = path.join(storage._shasPath, 'foo');
 
     beforeEach(function() {
@@ -204,6 +276,110 @@ describe('Storage', function() {
         assert.equal(browsers.length, 2);
         assert(browsers.indexOf('Internet Explorer') !== -1);
         assert(browsers.indexOf('Chrome') !== -1);
+      });
+    });
+  });
+
+  describe('#getImagesForShaBrowser', function() {
+    var readFilesSpy;
+    var storage;
+
+    beforeEach(function() {
+      mockFs.restore();
+
+      readFilesSpy = this.sinon.stub().resolves([]);
+      var dirHelperStub = {
+        '@noCallThru': true,
+        readFiles: readFilesSpy
+      };
+
+      storage = proxyquire('../server/utils/storage', {
+        './dirHelper': dirHelperStub
+      });
+    });
+
+    it('should fulfill', function() {
+      return assert.isFulfilled(storage.getImagesForShaBrowser({
+        sha: 'foo',
+        browser: 'Chrome'
+      }));
+    });
+
+    it('should call readFiles', function() {
+      var sha = 'foo';
+      var browser = 'Internet Explorer';
+
+      return storage.getImagesForShaBrowser({
+        sha: sha,
+        browser: browser
+      })
+      .then(function() {
+        var browserPath = path.join(storage._shasPath, sha, browser);
+
+        assert.calledOnce(readFilesSpy.withArgs(browserPath));
+      });
+    });
+  });
+
+  describe('#getImage', function() {
+    it('should return width, height, and data', function() {
+      var imageData = TarHelper.createImage();
+
+      var sha = 'foo';
+      var browser = 'Safari';
+      var image = 'baz.png';
+
+      var browserPath = path.join(storage._shasPath, sha, browser);
+      var imagePath = path.join(browserPath, image);
+
+      return fs.ensureDirAsync(browserPath)
+      .then(function() {
+        return imageData.writeImageAsync(imagePath);
+      })
+      .then(function() {
+        return storage.getImage({
+          sha: sha,
+          browser: browser,
+          image: image
+        });
+      })
+      .then(function(image) {
+        assert.isDefined(image.width);
+        assert.isDefined(image.height);
+        assert.isDefined(image.data);
+        assert.isDefined(image.gamma);
+      });
+    });
+  });
+
+  describe('#saveDiffImage', function() {
+    var options;
+
+    beforeEach(function() {
+      options = {
+        build: 'build',
+        browser: 'browser',
+        imageName: 'navbar.png',
+        imageData: TarHelper.createImage().getImage()
+      };
+    });
+
+    it('should save a file', function() {
+      var diffPath = path.join(storage._buildsPath, options.build, options.browser, options.imageName);
+
+      return storage.saveDiffImage(options)
+      .then(function() {
+        return fs.statAsync(diffPath);
+      })
+      .then(function(file) {
+        return assert(file.isFile());
+      });
+    });
+
+    it('should swallow any output', function() {
+      return storage.saveDiffImage(options)
+      .then(function(output) {
+        assert.isUndefined(output);
       });
     });
   });

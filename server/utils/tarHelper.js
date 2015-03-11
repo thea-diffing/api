@@ -102,6 +102,23 @@ var TarHelper = {
         return files;
       });
     });
+  },
+
+  imageData: function(pngjs) {
+    return new Bluebird(function(resolve, reject) {
+      var buffers = [];
+      pngjs.pack()
+      .on('data', function(data) {
+        buffers.push(data);
+      })
+      .on('end', function() {
+        var buffer = Buffer.concat(buffers);
+        resolve(buffer);
+      })
+      .on('error', function(error) {
+        reject(error);
+      });
+    });
   }
 };
 

@@ -5,6 +5,8 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
 var tar = require('tar-fs');
+var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
+var dirHelper = require('./dirHelper');
 
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
@@ -90,6 +92,30 @@ var Storage = {
   },
 
   /*
+  id string
+  options.status string
+  [options.diff object]
+  */
+  updateBuildInfo: function(id, options) {
+    var buildFile = path.join(buildsPath, id, 'build.json');
+    var status = options.status;
+    var diff = options.diff;
+
+    return fs.readJSONAsync(buildFile)
+    .then(function(data) {
+      data.status = status;
+
+      if (status === 'success') {
+        delete data.diff;
+      } else if (status === 'failure') {
+        data.diff = diff;
+      }
+
+      return fs.outputJSONAsync(buildFile, data);
+    });
+  },
+
+  /*
   sha string
   */
   getBrowsersForSha: function(sha) {
@@ -100,6 +126,58 @@ var Storage = {
       return files.filter(function(file) {
         return fs.statSync(path.join(shaPath, file)).isDirectory();
       });
+    });
+  },
+
+  /*
+  options.sha string
+  options.browser string
+  */
+  getImagesForShaBrowser: function(options) {
+    var sha = options.sha;
+    var browser = options.browser;
+
+    var browserPath = path.join(shasPath, sha, browser);
+    return dirHelper.readFiles(browserPath);
+  },
+
+  /*
+  options.sha string
+  options.browser string
+  options.image string
+
+  resolves pngjs
+  */
+  getImage: function(options) {
+    var sha = options.sha;
+    var browser = options.browser;
+    var image = options.image;
+
+    var imagePath = path.join(shasPath, sha, browser, image);
+
+    return PNGImage.readImageAsync(imagePath)
+    .then(function(image) {
+      return image.getImage();
+    });
+  },
+
+  /*
+  options.build string
+  options.browser string
+  options.imageName string
+  options.imageData pngjs
+  */
+  saveDiffImage: function(options) {
+    var build = options.build;
+    var browser = options.browser;
+    var imageName = options.imageName;
+    var imageData = options.imageData;
+
+    var imagePath = path.join(buildsPath, build, browser, imageName);
+
+    return fs.outputFileAsync(imagePath, imageData)
+    .then(function() {
+      // Keep any data from returning
     });
   }
 };

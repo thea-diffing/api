@@ -63,7 +63,6 @@ module.exports = function(app) {
       head: {SHA},
       base: {SHA},
       status: "success" // either "failed", "success"
-      browsers: ['Chrome 28', 'Firefox 34', 'IE 8'],
       diffs: {
           'Chrome 28': [
               'homepage.navbar.700.png',

@@ -6,7 +6,7 @@ var TarHelper = require('../server/utils/tarHelper');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var path = require('path');
 
-describe('TarHelper', function() {
+describe('module/tarHelper', function() {
   describe('getFilesInTar', function() {
     it('should read files', function() {
       var fixturePath = path.join(__dirname, 'fixtures', 'simple.tar.gz');
