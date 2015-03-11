@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/VisualTesting/api.svg?branch=master)](https://travis-ci.org/VisualTesting/api)
 [![Build status](https://ci.appveyor.com/api/projects/status/g35ex5x5pmgcube8/branch/master?svg=true)](https://ci.appveyor.com/project/TheSavior/api/branch/master)
-[![Coverage Status](https://coveralls.io/repos/VisualTesting/api/badge.svg?branch=feature%2Fcoveralls)](https://coveralls.io/r/VisualTesting/api?branch=feature%2Fcoveralls)
+[![Coverage Status](https://coveralls.io/repos/VisualTesting/api/badge.svg?branch=master)](https://coveralls.io/r/VisualTesting/api?branch=master)
 [![Dependency Status](https://david-dm.org/VisualTesting/api.svg)](https://david-dm.org/VisualTesting/api)
 [![devDependency Status](https://david-dm.org/VisualTesting/api/dev-status.svg)](https://david-dm.org/VisualTesting/api#info=devDependencies)
 
