@@ -103,10 +103,20 @@ function diffBrowser(options) {
         base: base,
         browser: browser,
         image: image
+      })
+      .then(function(result) {
+        if (result.diff === true) {
+          return image;
+        }
       });
     });
 
-    return Bluebird.all(imagePromises);
+    return Bluebird.all(imagePromises)
+    .then(function(results) {
+      return results.filter(function(result) {
+        return result !== undefined;
+      });
+    });
   });
 }
 

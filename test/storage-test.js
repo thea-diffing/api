@@ -211,7 +211,7 @@ describe('module/storage', function() {
     });
   });
 
-  describe('#getImagesForShaBrowsers', function() {
+  describe('#getImagesForShaBrowser', function() {
     var readFilesSpy;
     var storage;
 

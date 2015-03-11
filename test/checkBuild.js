@@ -217,41 +217,67 @@ describe('module/checkBuild', function() {
   });
 
   describe('#diffBrowser', function() {
-    var diffImageSpy;
+    var diffImageStub;
+
+    beforeEach(function() {
+      diffImageStub = this.sinon.stub().resolves({
+        diff: false
+      });
+      checkBuild._diffImage = diffImageStub;
+    });
 
     describe('for browsers with same images', function() {
       beforeEach(function() {
         storageStub.getImagesForShaBrowser = this.sinon.stub()
           .resolves(['image1.png', 'image2.png']);
-
-        diffImageSpy = this.sinon.spy();
-        checkBuild._diffImage = diffImageSpy;
       });
 
       it('calls diffImage for both images', function() {
         return checkBuild._diffBrowser({
           build: 'build',
-          head: 'foo',
-          base: 'bar',
+          head: 'head',
+          base: 'base',
           browser: 'Chrome'
         })
         .then(function() {
-          assert.calledOnce(diffImageSpy.withArgs({
+          assert.calledOnce(diffImageStub.withArgs({
             build: 'build',
-            head: 'foo',
-            base: 'bar',
+            head: 'head',
+            base: 'base',
             browser: 'Chrome',
             image: 'image1.png'
           }));
 
-          assert.calledOnce(diffImageSpy.withArgs({
+          assert.calledOnce(diffImageStub.withArgs({
             build: 'build',
-            head: 'foo',
-            base: 'bar',
+            head: 'head',
+            base: 'base',
             browser: 'Chrome',
             image: 'image2.png'
           }));
         });
+      });
+
+      it('resolves with images that differ', function() {
+        diffImageStub.withArgs({
+          build: 'build',
+          head: 'head',
+          base: 'base',
+          browser: 'Chrome',
+          image: 'image2.png'
+        })
+        .resolves({
+          diff: true
+        });
+
+        return assert.becomes(checkBuild._diffBrowser({
+          build: 'build',
+          head: 'head',
+          base: 'base',
+          browser: 'Chrome'
+        }), [
+          'image2.png'
+        ]);
       });
     });
 
@@ -259,51 +285,48 @@ describe('module/checkBuild', function() {
       beforeEach(function() {
         var stub = this.sinon.stub();
         stub.withArgs({
-          sha: 'foo',
+          sha: 'head',
           browser: 'Chrome'
         })
         .resolves(['image1.png', 'image2.png']);
 
         stub.withArgs({
-          sha: 'bar',
+          sha: 'base',
           browser: 'Chrome'
         })
         .resolves(['image2.png', 'image3.png']);
 
         storageStub.getImagesForShaBrowser = stub;
-
-        diffImageSpy = this.sinon.spy();
-        checkBuild._diffImage = diffImageSpy;
       });
 
       it('calls diffImage for only common images', function() {
         return checkBuild._diffBrowser({
           build: 'build',
-          head: 'foo',
-          base: 'bar',
+          head: 'head',
+          base: 'base',
           browser: 'Chrome'
         })
         .then(function() {
-          assert.calledOnce(diffImageSpy.withArgs({
+          assert.calledOnce(diffImageStub.withArgs({
             build: 'build',
-            head: 'foo',
-            base: 'bar',
+            head: 'head',
+            base: 'base',
             browser: 'Chrome',
             image: 'image2.png'
           }));
 
-          assert.notCalled(diffImageSpy.withArgs({
+          assert.notCalled(diffImageStub.withArgs({
             build: 'build',
-            head: 'foo',
-            base: 'bar',
+            head: 'head',
+            base: 'base',
             browser: 'Chrome',
             image: 'image1.png'
           }));
 
-          assert.notCalled(diffImageSpy.withArgs({
+          assert.notCalled(diffImageStub.withArgs({
             build: 'build',
-            head: 'foo',
-            base: 'bar',
+            head: 'head',
+            base: 'base',
             browser: 'Chrome',
             image: 'image3.png'
           }));
@@ -315,33 +338,39 @@ describe('module/checkBuild', function() {
       beforeEach(function() {
         var stub = this.sinon.stub();
         stub.withArgs({
-          sha: 'foo',
+          sha: 'head',
           browser: 'Chrome'
         })
         .resolves(['image1.png', 'image2.png']);
 
         stub.withArgs({
-          sha: 'bar',
+          sha: 'base',
           browser: 'Chrome'
         })
         .resolves(['image3.png', 'image4.png']);
 
         storageStub.getImagesForShaBrowser = stub;
-
-        diffImageSpy = this.sinon.spy();
-        checkBuild._diffImage = diffImageSpy;
       });
 
       it('does not call diffImage', function() {
         return checkBuild._diffBrowser({
           build: 'build',
-          head: 'foo',
-          base: 'bar',
+          head: 'head',
+          base: 'base',
           browser: 'Chrome'
         })
         .then(function() {
-          assert.notCalled(diffImageSpy);
+          assert.notCalled(diffImageStub);
         });
+      });
+
+      it('resolves with no images', function() {
+        return assert.becomes(checkBuild._diffBrowser({
+          build: 'build',
+          head: 'head',
+          base: 'base',
+          browser: 'Chrome'
+        }), []);
       });
     });
   });
