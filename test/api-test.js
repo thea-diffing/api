@@ -7,7 +7,7 @@ var path = require('path');
 var app = require('../server/app');
 var TarHelper = require('../server/utils/tarHelper');
 
-describe('Api', function() {
+describe('module/api', function() {
   var api = request(app);
   var instance;
 
@@ -19,7 +19,7 @@ describe('Api', function() {
     mockFs.restore();
   });
 
-  describe('startBuild', function() {
+  describe('#startBuild', function() {
     beforeEach(function() {
       instance = api.post('/api/startBuild');
     });
@@ -63,7 +63,7 @@ describe('Api', function() {
     });
   });
 
-  describe('upload', function() {
+  describe('#upload', function() {
     beforeEach(function() {
       instance = api.post('/api/upload');
     });
@@ -112,7 +112,7 @@ describe('Api', function() {
     });
   });
 
-  describe('getBuild', function() {
+  describe('#getBuild', function() {
     describe('should fail', function() {
       beforeEach(function() {
         instance = api.get('/api/getBuild');
