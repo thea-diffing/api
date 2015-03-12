@@ -51,14 +51,4 @@ module.exports = function(app) {
   }));
   app.use(multipart());
   app.use(methodOverride());
-
-  function logErrors(err, req, res, next) {
-    console.error(err.stack);
-    next(err);
-  }
-
-  // Error handler - has to be last
-  if (app.get('env') !== 'production') {
-    app.use(logErrors);
-  }
 };

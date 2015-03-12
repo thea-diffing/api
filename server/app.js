@@ -1,6 +1,7 @@
 'use strict';
 
 var express = require('express');
+var errorHandler = require('errorhandler');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -14,5 +15,15 @@ app.use(function(req, res, next) {
 
 require('./config/express')(app);
 require('./routes')(app);
+
+// Error handler - has to be last
+if (app.get('env') !== 'production') {
+  app.use(errorHandler({
+    log: function(err, str, req) {
+      console.error('Error in', req.method, req.url, err);
+      console.error(str);
+    }
+  }));
+}
 
 module.exports = app;
