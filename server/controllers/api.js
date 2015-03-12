@@ -18,6 +18,9 @@ function Api() {}
 Api.prototype = {
   startBuild: function(req, res) {
     var params = req.body;
+    // console.log(params, 'foo');
+    // return;
+    // return;
 
     var head = params.head;
     var base = params.base;
