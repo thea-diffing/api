@@ -42,14 +42,20 @@ module.exports = function(app) {
   // }
 
   // if (env !== 'test') {
-    // app.use(logger('combined'));
+  // app.use(logger('combined'));
   // }
 
-  app.use(bodyParser());
-  // app.use(bodyParser.json());
-  // app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({
+    extended: true
+  }));
   app.use(multipart());
-  app.use(methodOverride());
+  // app.use(methodOverride());
+
+  // app.use(function(req, res, next) {
+  //   console.log(req); // populated!
+  //   next();
+  // });
 
   // Error handler - has to be last
   if ('development' === app.get('env')) {
