@@ -13,10 +13,6 @@ var methodOverride = require('method-override');
 module.exports = function(app) {
   var env = app.get('env');
 
-  if (env === 'development') {
-    app.use(require('connect-livereload')());
-  }
-
   if (env === 'production') {
     app.use(compression());
   }
