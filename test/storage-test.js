@@ -3,7 +3,6 @@
 var Bluebird = require('bluebird');
 
 var path = require('path');
-// var mockFs = require('mock-fs');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var proxyquire = require('proxyquire');
 require('mocha-sinon');

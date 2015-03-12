@@ -1,7 +1,6 @@
 'use strict';
 
 var Bluebird = require('bluebird');
-var mockFs = require('mock-fs');
 var TarHelper = require('../server/utils/tarHelper');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var fs = Bluebird.promisifyAll(require('fs-extra'));

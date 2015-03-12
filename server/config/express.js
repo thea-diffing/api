@@ -1,17 +1,11 @@
 'use strict';
 
-var express = require('express');
-var favicon = require('serve-favicon');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
-var multer  = require('multer')
+var multer  = require('multer');
 
-
-var compression = require('compression'),
-    methodOverride = require('method-override'),
-    errorHandler = require('errorhandler'),
-    path = require('path'),
-    config = require('./config');
+var compression = require('compression');
+var methodOverride = require('method-override');
 
 /**
  * Express configuration
@@ -19,26 +13,8 @@ var compression = require('compression'),
 module.exports = function(app) {
   var env = app.get('env');
 
-  if (env === 'development') {
-    app.use(require('connect-livereload')());
-
-    // Disable caching of scripts for easier testing
-    app.use(function noCache(req, res, next) {
-      if (req.url.indexOf('/js/') === 0) {
-        res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.header('Pragma', 'no-cache');
-        res.header('Expires', 0);
-      }
-      next();
-    });
-
-    app.use(express.static(path.join(config.root, 'dist')));
-  }
-
   if (env === 'production') {
     app.use(compression());
-    // app.use(favicon(path.join(config.root, 'dist', 'favicon.ico')));
-    app.use(express.static(path.join(config.root, 'dist')));
   }
 
   if (env !== 'test') {
