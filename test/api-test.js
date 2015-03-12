@@ -11,13 +11,13 @@ describe('module/api', function() {
   var api = request(app);
   var instance;
 
-  before(function() {
-    mockFs();
-  });
+  // before(function() {
+  //   mockFs();
+  // });
 
-  after(function() {
-    mockFs.restore();
-  });
+  // after(function() {
+  //   mockFs.restore();
+  // });
 
   describe('#startBuild', function() {
     beforeEach(function() {
@@ -87,6 +87,8 @@ describe('module/api', function() {
 
     describe('valid', function() {
       beforeEach(function() {
+        mockFs();
+
         var fileName = path.join(__dirname, 'foo.tar.gz');
 
         return TarHelper.createBrowserTar(fileName)
@@ -96,6 +98,10 @@ describe('module/api', function() {
           .field('browser', 'Chrome 26')
           .attach('images', fileName);
         });
+      });
+
+      afterEach(function() {
+        mockFs.restore();
       });
 
       it('should give 200', function() {
