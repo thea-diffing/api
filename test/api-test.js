@@ -2,11 +2,9 @@
 
 var Bluebird = require('bluebird');
 var request = require('supertest-as-promised');
-// var mockFs = require('mock-fs');
 var path = require('path');
 var proxyquire = require('proxyquire');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
-
 
 var TarHelper = require('../server/utils/tarHelper');
 
