@@ -1,7 +1,8 @@
 node_modules/
 repositories/
 backup_repositories/
-npm-debug.log
 builds/
 data/
 coverage/
+uploads/
+npm-debug.log

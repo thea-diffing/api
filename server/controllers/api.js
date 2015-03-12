@@ -1,5 +1,6 @@
 'use strict';
 
+var Bluebird = require('bluebird');
 var fs = require('fs-extra');
 var path = require('path');
 
@@ -12,6 +13,7 @@ var resemble = require('node-resemble-js');
 var dirHelper = require('../utils/dirHelper');
 
 var storage = require('../utils/storage');
+var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 function Api() {}
 
@@ -75,7 +77,6 @@ Api.prototype = {
     }
 
     // TODO: validate the structure of the tar file
-
     storage.saveImages({
       sha: sha,
       browser: browser,
@@ -91,6 +92,9 @@ Api.prototype = {
         status: 'failure',
         message: 'failed uploading'
       });
+    })
+    .then(function() {
+      return fs.removeAsync(images.path);
     });
   },
 

@@ -4,10 +4,10 @@ var express = require('express');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
+var multer  = require('multer')
 
 
 var compression = require('compression'),
-    multipart = require('connect-multiparty'),
     methodOverride = require('method-override'),
     errorHandler = require('errorhandler'),
     path = require('path'),
@@ -49,6 +49,9 @@ module.exports = function(app) {
   app.use(bodyParser.urlencoded({
     extended: true
   }));
-  app.use(multipart());
+  app.use(multer({
+    dest: './uploads/'
+  }));
+
   app.use(methodOverride());
 };
