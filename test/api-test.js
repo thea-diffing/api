@@ -1,10 +1,11 @@
 'use strict';
 
-// var Stream = require('stream');
+var Bluebird = require('bluebird');
 var request = require('supertest-as-promised');
 // var mockFs = require('mock-fs');
 var path = require('path');
 var proxyquire = require('proxyquire');
+var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 
 var TarHelper = require('../server/utils/tarHelper');
@@ -96,9 +97,11 @@ describe('module/api', function() {
       });
     });
 
-    xdescribe('valid', function() {
+    describe('valid', function() {
       beforeEach(function() {
         var fileName = path.join(__dirname, 'foo.tar.gz');
+
+        storageStub.saveImages = this.sinon.stub().resolves();
 
         return TarHelper.createBrowserTar(fileName)
         .then(function() {
@@ -106,6 +109,9 @@ describe('module/api', function() {
           .field('sha', 'asdffasd')
           .field('browser', 'Chrome 26')
           .attach('images', fileName);
+        })
+        .then(function() {
+          return fs.removeAsync(fileName);
         });
       });
 
@@ -118,6 +124,19 @@ describe('module/api', function() {
           var body = data.body;
 
           assert.equal(body.status, 'success');
+        });
+      });
+
+      it('should have failure message if storage failed', function() {
+        storageStub.saveImages = this.sinon.stub().rejects();
+
+        return instance
+        .expect(500)
+        .expect(function(data) {
+          var body = data.body;
+
+          assert.equal(body.status, 'failure');
+          assert.equal(body.message, 'failed uploading');
         });
       });
     });
@@ -169,12 +188,6 @@ describe('module/api', function() {
     });
 
     describe('with valid build', function() {
-      var buildOptions = {
-        head: 'asdf',
-        base: 'fdsa',
-        numBrowsers: 2
-      };
-
       beforeEach(function() {
         storageStub.hasBuild = this.sinon.stub().resolves(true);
       });
