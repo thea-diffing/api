@@ -67,6 +67,9 @@ var TarHelper = {
 
         archive.pipe(writestream);
       });
+    })
+    .then(function() {
+      return fs.removeAsync(base);
     });
   },
 

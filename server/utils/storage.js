@@ -6,7 +6,7 @@ var path = require('path');
 var uuid = require('node-uuid');
 var tar = require('tar-fs');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
-var dirHelper = require('./dirHelper');
+var recursiveAsync = Bluebird.promisify(require('recursive-readdir'));
 
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
@@ -39,34 +39,6 @@ var Storage = {
   },
 
   /*
-  options.sha string
-  options.browser string
-  options.tarPath string
-  */
-  saveImages: function(options) {
-    var extractPath = path.join(shasPath, options.sha, options.browser);
-
-    return fs.ensureDirAsync(extractPath)
-    .then(function() {
-      return new Bluebird(function(resolve, reject) {
-        var readStream = fs.createReadStream(options.tarPath);
-
-        var extract = tar.extract(extractPath);
-
-        extract.on('error', function(err) {
-          reject(err);
-        });
-
-        extract.on('finish', function() {
-          resolve();
-        });
-
-        readStream.pipe(extract);
-      });
-    });
-  },
-
-  /*
   id string
   */
   hasBuild: function(id) {
@@ -74,7 +46,7 @@ var Storage = {
     .then(function(stat) {
       return stat.isDirectory();
     })
-    .catch(function() {
+    .catch(function(err) {
       return false;
     });
   },
@@ -116,6 +88,34 @@ var Storage = {
   },
 
   /*
+  options.sha string
+  options.browser string
+  options.tarPath string
+  */
+  saveImages: function(options) {
+    var extractPath = path.join(shasPath, options.sha, options.browser);
+
+    return fs.ensureDirAsync(extractPath)
+    .then(function() {
+      return new Bluebird(function(resolve, reject) {
+        var readStream = fs.createReadStream(options.tarPath);
+
+        var extract = tar.extract(extractPath);
+
+        extract.on('error', function(err) {
+          reject(err);
+        });
+
+        extract.on('finish', function() {
+          resolve();
+        });
+
+        readStream.pipe(extract);
+      });
+    });
+  },
+
+  /*
   sha string
   */
   getBrowsersForSha: function(sha) {
@@ -138,7 +138,8 @@ var Storage = {
     var browser = options.browser;
 
     var browserPath = path.join(shasPath, sha, browser);
-    return dirHelper.readFiles(browserPath);
+
+    return recursiveAsync(browserPath);
   },
 
   /*
@@ -183,8 +184,23 @@ var Storage = {
 };
 
 if (process.env.NODE_ENV === 'test') {
-  Storage._buildsPath = buildsPath;
-  Storage._shasPath = shasPath;
+  Object.defineProperty(Storage, '_buildsPath', {
+    get: function() {
+      return buildsPath;
+    },
+    set: function(newPath) {
+      buildsPath = newPath;
+    }
+  });
+
+  Object.defineProperty(Storage, '_shasPath', {
+    get: function() {
+      return shasPath;
+    },
+    set: function(newPath) {
+      shasPath = newPath;
+    }
+  });
 }
 
 module.exports = Storage;

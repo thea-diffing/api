@@ -1,23 +1,34 @@
 'use strict';
 
+// var Stream = require('stream');
 var request = require('supertest-as-promised');
-var mockFs = require('mock-fs');
+// var mockFs = require('mock-fs');
 var path = require('path');
+var proxyquire = require('proxyquire');
 
-var app = require('../server/app');
+
 var TarHelper = require('../server/utils/tarHelper');
 
 describe('module/api', function() {
-  var api = request(app);
+  var storageStub;
+  var api;
   var instance;
 
-  // before(function() {
-  //   mockFs();
-  // });
+  beforeEach(function() {
+    storageStub = {
+      '@noCallThru': true,
+      '@global': true,
+      startBuild: this.sinon.stub().resolves({
+        id: 'buildId'
+      })
+    };
 
-  // after(function() {
-  //   mockFs.restore();
-  // });
+    var app = proxyquire('../server/app', {
+      '../utils/storage': storageStub
+    });
+
+    api = request(app);
+  });
 
   describe('#startBuild', function() {
     beforeEach(function() {
@@ -41,8 +52,8 @@ describe('module/api', function() {
 
     describe('with valid params', function() {
       var params = {
-        head: 'asdf',
-        base: 'fdsa',
+        head: 'head',
+        base: 'base',
         numBrowsers: 2
       };
 
@@ -85,10 +96,8 @@ describe('module/api', function() {
       });
     });
 
-    describe('valid', function() {
+    xdescribe('valid', function() {
       beforeEach(function() {
-        mockFs();
-
         var fileName = path.join(__dirname, 'foo.tar.gz');
 
         return TarHelper.createBrowserTar(fileName)
@@ -98,10 +107,6 @@ describe('module/api', function() {
           .field('browser', 'Chrome 26')
           .attach('images', fileName);
         });
-      });
-
-      afterEach(function() {
-        mockFs.restore();
       });
 
       it('should give 200', function() {
@@ -119,7 +124,7 @@ describe('module/api', function() {
   });
 
   describe('#getBuild', function() {
-    describe('should fail', function() {
+    describe('', function() {
       beforeEach(function() {
         instance = api.get('/api/getBuild');
       });
@@ -141,6 +146,8 @@ describe('module/api', function() {
 
       describe('with unknown build', function() {
         beforeEach(function() {
+          storageStub.hasBuild = this.sinon.stub().resolves(false);
+
           instance = instance.send({
             id: 'foo'
           });
@@ -167,38 +174,82 @@ describe('module/api', function() {
         base: 'fdsa',
         numBrowsers: 2
       };
-      var buildId;
 
       beforeEach(function() {
-        return api.post('/api/startBuild')
-        .send(buildOptions)
-        .then(function(res) {
-          var body = res.body;
-          buildId = body.build;
-        });
+        storageStub.hasBuild = this.sinon.stub().resolves(true);
       });
 
-      it('has pending build', function() {
+      it('is pending returns build info', function() {
+        var result = {
+          id: 'buildId',
+          fake1: 'test',
+          fake2: 'test',
+          status: 'pending'
+        };
+
+        storageStub.getBuildInfo = this.sinon.stub().resolves(result);
+
         return api.get('/api/getBuild')
         .send({
-          id: buildId
+          id: 'buildId'
         })
         .expect(200)
         .expect(function(data) {
           var body = data.body;
-          assert.equal(body.id, buildId);
-          assert.equal(body.head, buildOptions.head);
-          assert.equal(body.base, buildOptions.base);
-          assert.equal(body.status, 'pending');
+          assert.deepEqual(body, result);
         });
       });
 
-      xit('has successful build with no diffs', function() {
+      it('is successful', function() {
+        var result = {
+          id: 'buildId',
+          fake1: 'test',
+          fake2: 'test',
+          status: 'success'
+        };
 
+        storageStub.getBuildInfo = this.sinon.stub().resolves(result);
+
+        return api.get('/api/getBuild')
+        .send({
+          id: 'buildId'
+        })
+        .expect(200)
+        .expect(function(data) {
+          var body = data.body;
+          assert.deepEqual(body, result);
+        });
       });
 
-      xit('has failed build with diffs', function() {
+      it('has failed build with diffs', function() {
+        var result = {
+          id: 'buildId',
+          fake1: 'test',
+          fake2: 'test',
+          status: 'failure',
+          diffs: {
+            Chrome: [
+              'file1.png',
+              'file2.png'
+            ],
+            'Internet Explorer': [
+              'file2.png',
+              'file3.png'
+            ]
+          }
+        };
 
+        storageStub.getBuildInfo = this.sinon.stub().resolves(result);
+
+        return api.get('/api/getBuild')
+        .send({
+          id: 'buildId'
+        })
+        .expect(200)
+        .expect(function(data) {
+          var body = data.body;
+          assert.deepEqual(body, result);
+        });
       });
     });
   });

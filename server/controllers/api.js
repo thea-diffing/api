@@ -18,9 +18,6 @@ function Api() {}
 Api.prototype = {
   startBuild: function(req, res) {
     var params = req.body;
-    // console.log(params, 'foo');
-    // return;
-    // return;
 
     var head = params.head;
     var base = params.base;
@@ -113,12 +110,7 @@ Api.prototype = {
       if (exists) {
         return storage.getBuildInfo(buildId)
         .then(function(info) {
-          if (info.status === 'pending') {
-            res.status(200).json(info);
-            return;
-          } else {
-            // return the calculated build
-          }
+          res.status(200).json(info);
         });
       } else {
         res.status(400).json({
@@ -128,15 +120,6 @@ Api.prototype = {
         return;
       }
     });
-
-    /*
-    +check params for id
-    +if no build by id, err
-    +get build's json file.
-    +if status is pending, then pending
-    calculate browsers by reading folders in sha dir
-    read build dir to get diff data
-    */
   },
 
   confirm: function(req, res) {
