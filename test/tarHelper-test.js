@@ -4,6 +4,7 @@ var Bluebird = require('bluebird');
 var mockFs = require('mock-fs');
 var TarHelper = require('../server/utils/tarHelper');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
+var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 
 describe('module/tarHelper', function() {
@@ -21,14 +22,6 @@ describe('module/tarHelper', function() {
 });
 
 describe('TarHelper', function() {
-  beforeEach(function() {
-    mockFs();
-  });
-
-  afterEach(function() {
-    mockFs.restore();
-  });
-
   describe('createImage', function() {
     it('should create a saveable image', function() {
       var image = TarHelper.createImage();
@@ -41,6 +34,9 @@ describe('TarHelper', function() {
       .then(function(file) {
         assert.equal(file.getWidth(), image.getWidth());
         assert.equal(file.getHeight(), image.getHeight());
+      })
+      .then(function() {
+        return fs.removeAsync(fileName);
       });
     });
   });
@@ -66,6 +62,9 @@ describe('TarHelper', function() {
         return expectedFiles.forEach(function(expected) {
           assert(files.indexOf(expected) !== -1);
         });
+      })
+      .then(function() {
+        return fs.removeAsync(fileName);
       });
     });
   });

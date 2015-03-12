@@ -3,23 +3,28 @@
 var Bluebird = require('bluebird');
 
 var path = require('path');
-var mockFs = require('mock-fs');
+// var mockFs = require('mock-fs');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var proxyquire = require('proxyquire');
 require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
+var recursiveAsync = Bluebird.promisify(require('recursive-readdir'));
+var uuid = require('node-uuid');
 
 var storage = require('../server/utils/storage');
 var TarHelper = require('../server/utils/tarHelper');
-var DirHelper = require('../server/utils/dirHelper');
 
 describe('module/storage', function() {
-  beforeEach(function() {
-    mockFs();
+  var testDataPath;
+
+  before(function() {
+    testDataPath = path.join(__dirname, '..', 'test-data');
+    storage._buildsPath = path.join(testDataPath, 'builds');
+    storage._shasPath = path.join(testDataPath, 'shas');
   });
 
-  afterEach(function() {
-    mockFs.restore();
+  after(function() {
+    return fs.removeAsync(testDataPath);
   });
 
   it('has _buildsPath', function() {
@@ -83,7 +88,7 @@ describe('module/storage', function() {
         tarPath: tarPath
       })
       .then(function() {
-        return DirHelper.readFiles(storage._shasPath);
+        return recursiveAsync(storage._shasPath);
       })
       .then(function(files) {
         return files.forEach(function(file) {
@@ -95,10 +100,10 @@ describe('module/storage', function() {
 
   describe('#hasBuild', function() {
     var buildOptions = {
-        head: 'head',
-        base: 'base',
-        numBrowsers: 3
-      };
+      head: 'head',
+      base: 'base',
+      numBrowsers: 3
+    };
 
     it('should have no build if startBuild not called', function() {
       return storage.hasBuild('asdf')
@@ -228,14 +233,17 @@ describe('module/storage', function() {
   });
 
   describe('#getBrowsersForSha', function() {
-    var dirPath = path.join(storage._shasPath, 'foo');
+    var sha;
+    var dirPath;
 
     beforeEach(function() {
+      sha = uuid.v4();
+       dirPath = path.join(storage._shasPath, sha);
       return fs.ensureDirAsync(dirPath);
     });
 
     it('returns empty array if no browsers', function() {
-      return storage.getBrowsersForSha('foo')
+      return storage.getBrowsersForSha(sha)
       .then(function(browsers) {
         assert.equal(browsers.length, 0);
       });
@@ -244,7 +252,7 @@ describe('module/storage', function() {
     it('returns one item if one folder', function() {
       return fs.ensureDirAsync(path.join(dirPath, 'Chrome'))
       .then(function() {
-        return storage.getBrowsersForSha('foo');
+        return storage.getBrowsersForSha(sha);
       })
       .then(function(browsers) {
         assert.deepEqual(browsers, ['Chrome']);
@@ -257,7 +265,7 @@ describe('module/storage', function() {
         return fs.ensureFileAsync(path.join(dirPath, 'foo.txt'));
       })
       .then(function() {
-        return storage.getBrowsersForSha('foo');
+        return storage.getBrowsersForSha(sha);
       })
       .then(function(browsers) {
         assert.deepEqual(browsers, ['Internet Explorer']);
@@ -270,7 +278,7 @@ describe('module/storage', function() {
         return fs.ensureDirAsync(path.join(dirPath, 'Chrome'));
       })
       .then(function() {
-        return storage.getBrowsersForSha('foo');
+        return storage.getBrowsersForSha(sha);
       })
       .then(function(browsers) {
         assert.equal(browsers.length, 2);
@@ -281,20 +289,14 @@ describe('module/storage', function() {
   });
 
   describe('#getImagesForShaBrowser', function() {
-    var readFilesSpy;
+    var readdirSpy;
     var storage;
 
     beforeEach(function() {
-      mockFs.restore();
-
-      readFilesSpy = this.sinon.stub().resolves([]);
-      var dirHelperStub = {
-        '@noCallThru': true,
-        readFiles: readFilesSpy
-      };
+      readdirSpy = this.sinon.stub().callsArgWith(1, null, []);
 
       storage = proxyquire('../server/utils/storage', {
-        './dirHelper': dirHelperStub
+        'recursive-readdir': readdirSpy
       });
     });
 
@@ -316,7 +318,7 @@ describe('module/storage', function() {
       .then(function() {
         var browserPath = path.join(storage._shasPath, sha, browser);
 
-        assert.calledOnce(readFilesSpy.withArgs(browserPath));
+        assert.calledOnce(readdirSpy.withArgs(browserPath));
       });
     });
   });

@@ -20,6 +20,7 @@
     "node-resemble-js": "0.0.4",
     "node-uuid": "^1.4.2",
     "object-assign": "^2.0.0",
+    "recursive-readdir": "^1.2.1",
     "serve-favicon": "^2.2.0"
   },
   "devDependencies": {
