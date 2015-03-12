@@ -24,10 +24,11 @@ Api.prototype = {
     var numBrowsers = params.numBrowsers;
 
     if (!head || !base || !numBrowsers) {
-      res.send(400, {
+      res.status(400).json({
         status: 'failure',
         message: 'invalid arguments'
       });
+      return;
     }
 
     storage.startBuild({
@@ -36,13 +37,13 @@ Api.prototype = {
       numBrowsers: numBrowsers
     })
     .then(function(result) {
-      res.send({
+      res.status(200).json({
         status: 'success',
         build: result.id
       });
     })
     .catch(function() {
-      res.send(500, {
+      res.status(500).json({
         status: 'failure',
         message: 'error starting build'
       });
@@ -65,7 +66,7 @@ Api.prototype = {
     }
     finally {
       if (!sha || !browser || !files || !images) {
-        res.send(400, {
+        res.status(400).json({
           status: 'failure',
           message: 'invalid arguments'
         });
@@ -81,12 +82,12 @@ Api.prototype = {
       tarPath: images.path
     })
     .then(function() {
-      res.send(200, {
+      res.status(200).json({
         status: 'success'
       });
     })
     .catch(function() {
-      res.send(500, {
+      res.status(500).json({
         status: 'failure',
         message: 'failed uploading'
       });
@@ -97,7 +98,7 @@ Api.prototype = {
     var buildId = req.body.id;
 
     if (!buildId) {
-      res.send(400, {
+      res.status(400).json({
         status: 'failure',
         message: 'invalid arguments'
       });
@@ -110,14 +111,14 @@ Api.prototype = {
         return storage.getBuildInfo(buildId)
         .then(function(info) {
           if (info.status === 'pending') {
-            res.send(200, info);
+            res.status(200).json(info);
             return;
           } else {
             // return the calculated build
           }
         });
       } else {
-        res.send(400, {
+        res.status(400).json({
           status: 'failure',
           message: 'unknown build'
         });

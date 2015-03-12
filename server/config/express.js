@@ -1,10 +1,12 @@
 'use strict';
 
-var express = require('express'),
-    favicon = require('static-favicon'),
-    morgan = require('morgan'),
-    compression = require('compression'),
-    bodyParser = require('body-parser'),
+var express = require('express');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var bodyParser = require('body-parser');
+
+
+var compression = require('compression'),
     multipart = require('connect-multiparty'),
     methodOverride = require('method-override'),
     errorHandler = require('errorhandler'),
@@ -17,33 +19,35 @@ var express = require('express'),
 module.exports = function(app) {
   var env = app.get('env');
 
-  if ('development' === env) {
-    app.use(require('connect-livereload')());
+  // if ('development' === env) {
+  //   app.use(require('connect-livereload')());
 
-    // Disable caching of scripts for easier testing
-    app.use(function noCache(req, res, next) {
-      if (req.url.indexOf('/js/') === 0) {
-        res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.header('Pragma', 'no-cache');
-        res.header('Expires', 0);
-      }
-      next();
-    });
+  //   // Disable caching of scripts for easier testing
+  //   app.use(function noCache(req, res, next) {
+  //     if (req.url.indexOf('/js/') === 0) {
+  //       res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  //       res.header('Pragma', 'no-cache');
+  //       res.header('Expires', 0);
+  //     }
+  //     next();
+  //   });
 
-    app.use(express.static(path.join(config.root, 'dist')));
-  }
+  //   app.use(express.static(path.join(config.root, 'dist')));
+  // }
 
-  if ('production' === env) {
-    app.use(compression());
-    app.use(favicon(path.join(config.root, 'dist', 'favicon.ico')));
-    app.use(express.static(path.join(config.root, 'dist')));
-  }
+  // if ('production' === env) {
+  //   app.use(compression());
+  //   // app.use(favicon(path.join(config.root, 'dist', 'favicon.ico')));
+  //   app.use(express.static(path.join(config.root, 'dist')));
+  // }
 
-  if (env !== 'test') {
-    app.use(morgan('dev'));
-  }
+  // if (env !== 'test') {
+    // app.use(logger('combined'));
+  // }
 
   app.use(bodyParser());
+  // app.use(bodyParser.json());
+  // app.use(bodyParser.urlencoded({ extended: true }));
   app.use(multipart());
   app.use(methodOverride());
 
