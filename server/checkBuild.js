@@ -18,7 +18,13 @@ function diffSha(payload) {
 
   return storage.getBuildsForSha(sha)
   .then(function(builds) {
-    console.log(builds);
+    var diffBuildPromises = builds.map(function(build) {
+      return diffBuild({
+        id: build
+      });
+    });
+
+    return Bluebird.all(diffBuildPromises);
   });
 }
 

@@ -62,37 +62,34 @@ var Storage = {
     var shaBuildsFile = path.join(shaBuildsPath, 'builds.json');
 
     return fs.ensureDirAsync(shaBuildsPath)
-    .then(function() {
-      return new Bluebird(function(resolve) {
-        try {
-          var stat = fs.statSync(shaBuildsFile);
-          resolve({
-            exists: stat.isFile()
-          });
-        }
-        catch(err) {
-          resolve({
-            exists: false
-          });
-        }
-      });
-    })
-    .then(function(result) {
-      if (result.exists === true) {
-        return fs.readJSONAsync(shaBuildsFile)
-        .then(function(fileContents) {
-          var builds = fileContents.builds;
-          builds.push(build);
-          return builds;
-        });
-      } else {
-        return [build];
-      }
+    .then((function() {
+      return this.getBuildsForSha(sha);
+    }).bind(this))
+    .then(function(builds) {
+      builds.push(build);
+      return builds;
+    }, function() {
+      return [build];
     })
     .then(function(buildsArray) {
       return fs.outputJSONAsync(shaBuildsFile, {
         builds: buildsArray
       });
+    });
+  },
+
+  getBuildsForSha: function(sha) {
+    var shaBuildsPath = path.join(shasPath, sha);
+    var shaBuildsFile = path.join(shaBuildsPath, 'builds.json');
+
+    return new Bluebird(function(resolve, reject) {
+      try {
+        var file = fs.readJSONSync(shaBuildsFile);
+        resolve(file.builds);
+      }
+      catch(err) {
+        reject();
+      }
     });
   },
 

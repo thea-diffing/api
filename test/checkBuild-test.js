@@ -39,6 +39,48 @@ describe('module/checkBuild', function() {
     });
   });
 
+  describe('#diffSha', function() {
+    beforeEach(function() {
+
+    });
+
+    it('calls storage.getBuildsForSha', function() {
+      storageStub.getBuildsForSha = this.sinon.stub().withArgs('whee').resolves([]);
+
+      return checkBuild._diffSha({
+        sha: 'whee'
+      })
+      .then(function() {
+        assert.calledOnce(storageStub.getBuildsForSha);
+      });
+    });
+
+    it('calls diffBuild for builds from getBuildsForSha', function() {
+      storageStub.getBuildsForSha = this.sinon.stub()
+      .withArgs('whee')
+      .resolves(['a', 'b', 'c']);
+
+      checkBuild._diffBuild = this.sinon.stub().resolves();
+
+      return checkBuild._diffSha({
+        sha: 'whee'
+      })
+      .then(function() {
+        assert.calledWith(checkBuild._diffBuild, {
+          id: 'a'
+        });
+
+        assert.calledWith(checkBuild._diffBuild, {
+          id: 'b'
+        });
+
+        assert.calledWith(checkBuild._diffBuild, {
+          id: 'c'
+        });
+      });
+    });
+  });
+
   describe('#diffBuild', function() {
     beforeEach(function() {
       storageStub.updateBuild = this.sinon.stub();

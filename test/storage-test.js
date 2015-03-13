@@ -135,6 +135,28 @@ describe('module/storage', function() {
     });
   });
 
+  describe('#getBuildsForSha', function() {
+    it('should reject if no build', function() {
+      assert.isRejected(storage.getBuildsForSha('asfd'));
+    });
+
+    it('should resolve builds if builds', function() {
+      var build = uuid.v4();
+      var sha = uuid.v4();
+
+      return storage.addBuildToSha({
+        build: build,
+        sha: sha
+      })
+      .then(function() {
+        return storage.getBuildsForSha(sha);
+      })
+      .then(function(builds) {
+        assert.deepEqual(builds, [build]);
+      });
+    });
+  });
+
   describe('#saveImages', function() {
     var tarPath;
 
