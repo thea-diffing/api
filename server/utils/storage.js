@@ -31,10 +31,68 @@ var Storage = {
       numBrowsers: options.numBrowsers,
       status: 'pending'
     })
+    .then((function() {
+      return Bluebird.all([
+        this.addBuildToSha({
+          build: guid,
+          sha: options.head
+        }),
+        this.addBuildToSha({
+          build: guid,
+          sha: options.base
+        })
+      ]);
+    }).bind(this))
     .then(function() {
       return {
         id: guid
       };
+    });
+  },
+
+  /*
+  build string
+  sha string
+  */
+  addBuildToSha: function(options) {
+    var build = options.build;
+    var sha = options.sha;
+
+    var shaBuildsPath = path.join(shasPath, sha);
+    var shaBuildsFile = path.join(shaBuildsPath, 'builds.json');
+
+    return fs.ensureDirAsync(shaBuildsPath)
+    .then(function() {
+      return new Bluebird(function(resolve) {
+        try {
+          var stat = fs.statSync(shaBuildsFile);
+          resolve({
+            exists: stat.isFile()
+          });
+        }
+        catch(err) {
+          resolve({
+            exists: false
+          });
+        }
+      });
+    })
+    .then(function(result) {
+      if (result.exists === true) {
+        return fs.readJSONAsync(shaBuildsFile)
+        .then(function(fileContents) {
+          var builds = fileContents.builds;
+          builds.push(build);
+          return builds;
+        });
+      } else {
+        return [build];
+      }
+    })
+    .then(function(buildsArray) {
+      return fs.outputJSONAsync(shaBuildsFile, {
+        builds: buildsArray
+      });
     });
   },
 

@@ -69,17 +69,63 @@ describe('module/storage', function() {
     });
   });
 
+  describe('#addBuildToSha', function() {
+    it('without existing sha creates a builds.json file', function() {
+      var build = uuid.v4();
+      var sha = uuid.v4();
+
+      return storage.addBuildToSha({
+        build: build,
+        sha: sha
+      })
+      .then(function() {
+        var shaBuildsPath = path.join(storage._shasPath, sha, 'builds.json');
+        return fs.readJSONAsync(shaBuildsPath);
+      })
+      .then(function(data) {
+        assert.deepEqual(data.builds, [build]);
+      });
+
+    });
+
+    it('with existing sha adds to builds.json file', function() {
+      var build1 = uuid.v4();
+      var build2 = uuid.v4();
+      var sha = uuid.v4();
+
+      var shaBuildsPath = path.join(storage._shasPath, sha, 'builds.json');
+
+      return storage.addBuildToSha({
+        build: build1,
+        sha: sha
+      })
+      .then(function() {
+        return storage.addBuildToSha({
+          build: build2,
+          sha: sha
+        });
+      })
+      .then(function() {
+        return fs.readJSONAsync(shaBuildsPath);
+      })
+      .then(function(data) {
+        assert.deepEqual(data.builds, [build1, build2]);
+      });
+    });
+  });
+
   describe('#saveImages', function() {
-    var tarPath = path.join(__dirname, 'foo.tar.gz');
+    var tarPath;
 
     beforeEach(function() {
+      tarPath = path.join(testDataPath, uuid.v4());
       return TarHelper.createBrowserTar(tarPath);
     });
 
-    it('should', function() {
-      var sha = 'sha';
+    it('should untar to folder', function() {
+      var sha = uuid.v4();
       var browser = 'Chrome 28';
-      var expectedSavePath = path.join(sha, browser);
+      var expectedSavePath = path.join(storage._shasPath, sha, browser);
 
       return storage.saveImages({
         sha: sha,
@@ -87,12 +133,10 @@ describe('module/storage', function() {
         tarPath: tarPath
       })
       .then(function() {
-        return recursiveAsync(storage._shasPath);
+        return recursiveAsync(expectedSavePath);
       })
       .then(function(files) {
-        return files.forEach(function(file) {
-          assert(file.indexOf(expectedSavePath) !== -1);
-        });
+        assert.equal(files.length, 4);
       });
     });
   });
@@ -237,7 +281,7 @@ describe('module/storage', function() {
 
     beforeEach(function() {
       sha = uuid.v4();
-       dirPath = path.join(storage._shasPath, sha);
+      dirPath = path.join(storage._shasPath, sha);
       return fs.ensureDirAsync(dirPath);
     });
 
