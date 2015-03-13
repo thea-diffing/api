@@ -39,4 +39,12 @@ describe('routes', function() {
     });
 
   });
+
+  it('/unrecognized should return 404', function() {
+    var app = require('../server/app');
+    var api = request(app);
+
+    return api.get('/foo')
+    .expect(404);
+  });
 });
