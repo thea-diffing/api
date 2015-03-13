@@ -25,7 +25,8 @@ describe('module/api', function() {
 
     actionsStub = {
       '@noCallThru': true,
-      '@global': true
+      '@global': true,
+      diffSha: this.sinon.spy()
     };
 
     var app = proxyquire('../server/app', {
@@ -111,7 +112,6 @@ describe('module/api', function() {
 
         storageStub.saveImages = this.sinon.stub().resolves();
 
-
         return TarHelper.createBrowserTar(fileName)
         .then(function() {
           instance = instance
@@ -136,12 +136,10 @@ describe('module/api', function() {
         });
       });
 
-      it('should call actions.shaReceived', function() {
-        actionsStub.shaReceived = this.sinon.spy();
-
+      it('should call actions.diffSha', function() {
         return instance.expect(function() {
-          assert.calledOnce(actionsStub.shaReceived);
-          assert.calledWithExactly(actionsStub.shaReceived, sha);
+          assert.calledOnce(actionsStub.diffSha);
+          assert.calledWithExactly(actionsStub.diffSha, sha);
         });
       });
 

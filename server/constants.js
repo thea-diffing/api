@@ -3,7 +3,7 @@
 var Symbol = require('symbol');
 
 var Constants = {
-  shaReceived: new Symbol()
+  diffSha: new Symbol()
 };
 
 module.exports = Constants;

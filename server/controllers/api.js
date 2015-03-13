@@ -85,7 +85,7 @@ Api.prototype = {
       });
     })
     .then(function() {
-      actions.shaReceived(sha);
+      actions.diffSha(sha);
       return fs.removeAsync(images.path);
     });
   },
