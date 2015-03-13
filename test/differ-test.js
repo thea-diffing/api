@@ -5,7 +5,7 @@ var differ = require('../server/utils/differ');
 
 describe('module/differ', function() {
   describe('#generateDiff', function() {
-    it('should print', function() {
+    it('should be equal with the same images', function() {
       var image1 = TarHelper.createImage().getImage();
       var image2 = TarHelper.createImage().getImage();
 

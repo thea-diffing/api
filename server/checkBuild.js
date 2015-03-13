@@ -4,16 +4,35 @@ var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
 var differ = require('./utils/differ');
+var constants = require('./constants');
 
 /*
-payload.id string
+payload.sha string
 */
-function buildReceived(payload) {
-  if (payload === undefined || payload.id === undefined) {
-    return new Bluebird.reject(new Error('Payload must contain an id'));
+function diffSha(payload) {
+  if (payload === undefined || payload.sha === undefined) {
+    return new Bluebird.reject(new Error('Payload must contain a sha'));
   }
 
-  var buildId = payload.id;
+  var sha = payload.sha;
+
+  return storage.getBuildsForSha(sha)
+  .then(function(builds) {
+    var diffBuildPromises = builds.map(function(build) {
+      return diffBuild({
+        id: build
+      });
+    });
+
+    return Bluebird.all(diffBuildPromises);
+  });
+}
+
+/*
+options.id string
+*/
+function diffBuild(options) {
+  var buildId = options.id;
   var buildInfo;
 
   return storage.getBuildInfo(buildId)
@@ -203,12 +222,21 @@ function diffImage(options) {
   });
 }
 
-dispatcher.on('buildReceived', buildReceived);
+dispatcher.on(constants.diffSha, diffSha);
 
 if (process.env.NODE_ENV === 'test') {
   var visible = {
-    _buildReceived: buildReceived
+    _diffSha: diffSha
   };
+
+  Object.defineProperty(visible, '_diffBuild', {
+    get: function() {
+      return diffBuild;
+    },
+    set: function(newFunc) {
+      diffBuild = newFunc;
+    }
+  });
 
   Object.defineProperty(visible, '_diffCommonBrowsers', {
     get: function() {

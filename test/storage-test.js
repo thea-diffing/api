@@ -35,11 +35,15 @@ describe('module/storage', function() {
   });
 
   describe('#startBuild', function() {
-    var buildOptions = {
-      head: 'head',
-      base: 'base',
-      numBrowsers: 3
-    };
+    var buildOptions;
+
+    beforeEach(function() {
+      buildOptions  = {
+        head: uuid.v4(),
+        base: uuid.v4(),
+        numBrowsers: 3
+      };
+    });
 
     it('should return an id', function() {
       return storage.startBuild(buildOptions)
@@ -67,19 +71,104 @@ describe('module/storage', function() {
         assert.shallowDeepEqual(data, buildOptions);
       });
     });
+
+    it('should call addBuildToSha for head and base', function() {
+      var spy = this.sinon.spy(storage, 'addBuildToSha');
+
+      return storage.startBuild(buildOptions)
+      .then(function(build) {
+        assert.calledWith(spy, {
+          build: build.id,
+          sha: buildOptions.head
+        });
+
+        assert.calledWith(spy, {
+          build: build.id,
+          sha: buildOptions.base
+        });
+      });
+    });
+  });
+
+  describe('#addBuildToSha', function() {
+    it('without existing sha creates a builds.json file', function() {
+      var build = uuid.v4();
+      var sha = uuid.v4();
+
+      return storage.addBuildToSha({
+        build: build,
+        sha: sha
+      })
+      .then(function() {
+        var shaBuildsPath = path.join(storage._shasPath, sha, 'builds.json');
+        return fs.readJSONAsync(shaBuildsPath);
+      })
+      .then(function(data) {
+        assert.deepEqual(data.builds, [build]);
+      });
+
+    });
+
+    it('with existing sha adds to builds.json file', function() {
+      var build1 = uuid.v4();
+      var build2 = uuid.v4();
+      var sha = uuid.v4();
+
+      var shaBuildsPath = path.join(storage._shasPath, sha, 'builds.json');
+
+      return storage.addBuildToSha({
+        build: build1,
+        sha: sha
+      })
+      .then(function() {
+        return storage.addBuildToSha({
+          build: build2,
+          sha: sha
+        });
+      })
+      .then(function() {
+        return fs.readJSONAsync(shaBuildsPath);
+      })
+      .then(function(data) {
+        assert.deepEqual(data.builds, [build1, build2]);
+      });
+    });
+  });
+
+  describe('#getBuildsForSha', function() {
+    it('should reject if no build', function() {
+      assert.isRejected(storage.getBuildsForSha('asfd'));
+    });
+
+    it('should resolve builds if builds', function() {
+      var build = uuid.v4();
+      var sha = uuid.v4();
+
+      return storage.addBuildToSha({
+        build: build,
+        sha: sha
+      })
+      .then(function() {
+        return storage.getBuildsForSha(sha);
+      })
+      .then(function(builds) {
+        assert.deepEqual(builds, [build]);
+      });
+    });
   });
 
   describe('#saveImages', function() {
-    var tarPath = path.join(__dirname, 'foo.tar.gz');
+    var tarPath;
 
     beforeEach(function() {
+      tarPath = path.join(testDataPath, uuid.v4());
       return TarHelper.createBrowserTar(tarPath);
     });
 
-    it('should', function() {
-      var sha = 'sha';
+    it('should untar to folder', function() {
+      var sha = uuid.v4();
       var browser = 'Chrome 28';
-      var expectedSavePath = path.join(sha, browser);
+      var expectedSavePath = path.join(storage._shasPath, sha, browser);
 
       return storage.saveImages({
         sha: sha,
@@ -87,12 +176,10 @@ describe('module/storage', function() {
         tarPath: tarPath
       })
       .then(function() {
-        return recursiveAsync(storage._shasPath);
+        return recursiveAsync(expectedSavePath);
       })
       .then(function(files) {
-        return files.forEach(function(file) {
-          assert(file.indexOf(expectedSavePath) !== -1);
-        });
+        assert.equal(files.length, 4);
       });
     });
   });
@@ -237,7 +324,7 @@ describe('module/storage', function() {
 
     beforeEach(function() {
       sha = uuid.v4();
-       dirPath = path.join(storage._shasPath, sha);
+      dirPath = path.join(storage._shasPath, sha);
       return fs.ensureDirAsync(dirPath);
     });
 

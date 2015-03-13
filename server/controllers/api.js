@@ -4,6 +4,7 @@ var Bluebird = require('bluebird');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var storage = require('../utils/storage');
+var actions = require('../actions');
 
 function Api() {}
 
@@ -84,6 +85,7 @@ Api.prototype = {
       });
     })
     .then(function() {
+      actions.diffSha(sha);
       return fs.removeAsync(images.path);
     });
   },

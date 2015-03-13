@@ -39,15 +39,53 @@ describe('module/checkBuild', function() {
     });
   });
 
-  describe('#buildReceived', function() {
-    beforeEach(function() {
-      storageStub.updateBuild = this.sinon.stub();
-    });
-
+  describe('#diffSha', function() {
     describe('with invalid payload', function() {
       it('should throw', function() {
-        return assert.isRejected(checkBuild._buildReceived());
+        return assert.isRejected(checkBuild._diffSha());
       });
+    });
+
+    it('calls storage.getBuildsForSha', function() {
+      storageStub.getBuildsForSha = this.sinon.stub().withArgs('whee').resolves([]);
+
+      return checkBuild._diffSha({
+        sha: 'whee'
+      })
+      .then(function() {
+        assert.calledOnce(storageStub.getBuildsForSha);
+      });
+    });
+
+    it('calls diffBuild for builds from getBuildsForSha', function() {
+      storageStub.getBuildsForSha = this.sinon.stub()
+      .withArgs('whee')
+      .resolves(['a', 'b', 'c']);
+
+      checkBuild._diffBuild = this.sinon.stub().resolves();
+
+      return checkBuild._diffSha({
+        sha: 'whee'
+      })
+      .then(function() {
+        assert.calledWith(checkBuild._diffBuild, {
+          id: 'a'
+        });
+
+        assert.calledWith(checkBuild._diffBuild, {
+          id: 'b'
+        });
+
+        assert.calledWith(checkBuild._diffBuild, {
+          id: 'c'
+        });
+      });
+    });
+  });
+
+  describe('#diffBuild', function() {
+    beforeEach(function() {
+      storageStub.updateBuild = this.sinon.stub();
     });
 
     describe('with completed build', function() {
@@ -65,7 +103,7 @@ describe('module/checkBuild', function() {
       });
 
       it('should call diffCommonBrowsers', function() {
-        return checkBuild._buildReceived({
+        return checkBuild._diffBuild({
           id: 'build'
         })
         .then(function() {
@@ -93,7 +131,7 @@ describe('module/checkBuild', function() {
           })
           .resolves(diff);
 
-          return checkBuild._buildReceived({
+          return checkBuild._diffBuild({
             id: 'build'
           })
           .then(function() {
@@ -116,7 +154,7 @@ describe('module/checkBuild', function() {
           })
           .resolves({});
 
-          return checkBuild._buildReceived({
+          return checkBuild._diffBuild({
             id: 'build'
           })
           .then(function() {
@@ -138,7 +176,7 @@ describe('module/checkBuild', function() {
       });
 
       it('should not throw', function() {
-        return assert.isFulfilled(checkBuild._buildReceived({
+        return assert.isFulfilled(checkBuild._diffBuild({
           id: 'head'
         }));
       });
@@ -147,7 +185,7 @@ describe('module/checkBuild', function() {
         var spy = this.sinon.spy();
         checkBuild._diffCommonBrowsers = spy;
 
-        return checkBuild._buildReceived({
+        return checkBuild._diffBuild({
           id: 'head'
         })
         .then(function() {
