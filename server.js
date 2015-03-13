@@ -1,7 +1,11 @@
 'use strict';
 
 var app = require('./server/app');
-var config = require('./server/config/config');
+
+var config = {};
+
+config.ip = '0.0.0.0';
+config.port = '9000';
 
 // Start server
 app.listen(config.port, config.ip, function() {
