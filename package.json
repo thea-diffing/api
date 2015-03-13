@@ -16,7 +16,8 @@
     "multer": "^0.1.8",
     "node-resemble-js": "0.0.4",
     "node-uuid": "^1.4.2",
-    "recursive-readdir": "^1.2.1"
+    "recursive-readdir": "^1.2.1",
+    "symbol": "^0.2.1"
   },
   "devDependencies": {
     "chai": "^2.1.1",

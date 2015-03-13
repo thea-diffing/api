@@ -4,6 +4,7 @@ var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
 var differ = require('./utils/differ');
+var constants = require('./constants');
 
 /*
 payload.id string
@@ -203,7 +204,7 @@ function diffImage(options) {
   });
 }
 
-dispatcher.on('buildReceived', buildReceived);
+dispatcher.on(constants.shaReceived, buildReceived);
 
 if (process.env.NODE_ENV === 'test') {
   var visible = {

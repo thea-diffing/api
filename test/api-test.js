@@ -10,6 +10,7 @@ var TarHelper = require('../server/utils/tarHelper');
 
 describe('module/api', function() {
   var storageStub;
+  var actionsStub;
   var api;
   var instance;
 
@@ -22,8 +23,14 @@ describe('module/api', function() {
       })
     };
 
+    actionsStub = {
+      '@noCallThru': true,
+      '@global': true
+    };
+
     var app = proxyquire('../server/app', {
-      '../utils/storage': storageStub
+      '../utils/storage': storageStub,
+      '../actions': actionsStub
     });
 
     api = request(app);
@@ -96,15 +103,19 @@ describe('module/api', function() {
     });
 
     describe('valid', function() {
+      var sha;
+
       beforeEach(function() {
         var fileName = path.join(__dirname, 'foo.tar.gz');
+        sha = 'sha';
 
         storageStub.saveImages = this.sinon.stub().resolves();
+
 
         return TarHelper.createBrowserTar(fileName)
         .then(function() {
           instance = instance
-          .field('sha', 'asdffasd')
+          .field('sha', sha)
           .field('browser', 'Chrome 26')
           .attach('images', fileName);
         })
@@ -122,6 +133,15 @@ describe('module/api', function() {
           var body = data.body;
 
           assert.equal(body.status, 'success');
+        });
+      });
+
+      it('should call actions.shaReceived', function() {
+        actionsStub.shaReceived = this.sinon.spy();
+
+        return instance.expect(function() {
+          assert.calledOnce(actionsStub.shaReceived);
+          assert.calledWithExactly(actionsStub.shaReceived, sha);
         });
       });
 
