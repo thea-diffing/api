@@ -40,8 +40,10 @@ describe('module/checkBuild', function() {
   });
 
   describe('#diffSha', function() {
-    beforeEach(function() {
-
+    describe('with invalid payload', function() {
+      it('should throw', function() {
+        return assert.isRejected(checkBuild._diffSha());
+      });
     });
 
     it('calls storage.getBuildsForSha', function() {
