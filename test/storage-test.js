@@ -35,11 +35,15 @@ describe('module/storage', function() {
   });
 
   describe('#startBuild', function() {
-    var buildOptions = {
-      head: 'head',
-      base: 'base',
-      numBrowsers: 3
-    };
+    var buildOptions;
+
+    beforeEach(function() {
+      buildOptions  = {
+        head: uuid.v4(),
+        base: uuid.v4(),
+        numBrowsers: 3
+      };
+    });
 
     it('should return an id', function() {
       return storage.startBuild(buildOptions)
@@ -65,6 +69,23 @@ describe('module/storage', function() {
         assert.isString(data.id);
         assert.equal(data.status, 'pending');
         assert.shallowDeepEqual(data, buildOptions);
+      });
+    });
+
+    it('should call addBuildToSha for head and base', function() {
+      var spy = this.sinon.spy(storage, 'addBuildToSha');
+
+      return storage.startBuild(buildOptions)
+      .then(function(build) {
+        assert.calledWith(spy, {
+          build: build.id,
+          sha: buildOptions.head
+        });
+
+        assert.calledWith(spy, {
+          build: build.id,
+          sha: buildOptions.base
+        });
       });
     });
   });
