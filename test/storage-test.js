@@ -8,6 +8,7 @@ var proxyquire = require('proxyquire');
 require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
 var uuid = require('node-uuid');
+var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 
 var storage = require('../server/utils/storage');
 var TarHelper = require('../server/utils/tarHelper');
@@ -472,6 +473,19 @@ describe('module/storage', function() {
       })
       .then(function(file) {
         return assert(file.isFile());
+      });
+    });
+
+    it('should save a readable image file', function() {
+      var diffPath = path.join(storage._buildsPath, options.build, options.browser, options.imageName);
+
+      return storage.saveDiffImage(options)
+      .then(function() {
+        return PNGImage.readImageAsync(diffPath);
+      })
+      .then(function(file) {
+        assert.isAbove(file.getWidth(), 0);
+        assert.isAbove(file.getHeight(), 0);
       });
     });
 
