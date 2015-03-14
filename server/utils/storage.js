@@ -214,11 +214,17 @@ var Storage = {
     var imageName = options.imageName;
     var imageData = options.imageData;
 
-    var imagePath = path.join(buildsPath, build, browser, imageName);
+    var folder = path.join(buildsPath, build, browser);
+    var imagePath = path.join(folder, imageName);
 
-    return fs.outputFileAsync(imagePath, imageData)
+    return fs.ensureDirAsync(folder)
     .then(function() {
-      // Keep any data from returning
+      return new Bluebird(function(resolve) {
+        imageData.pack().on('end', function() {
+          resolve();
+        })
+        .pipe(fs.createWriteStream(imagePath));
+      });
     });
   }
 };
