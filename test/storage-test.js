@@ -301,7 +301,7 @@ describe('module/storage', function() {
 
       beforeEach(function() {
         newBuildInfo = {
-          status: 'failure',
+          status: 'failed',
           diff: {
             Chrome: ['image1.png,', 'image2.png'],
             Firefox: ['image1.png']
@@ -314,7 +314,7 @@ describe('module/storage', function() {
       it('should write failure', function() {
         return storage.getBuildInfo(buildId)
         .then(function(buildInfo) {
-          assert.equal(buildInfo.status, 'failure');
+          assert.equal(buildInfo.status, 'failed');
         });
       });
 
