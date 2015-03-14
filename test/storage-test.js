@@ -7,23 +7,23 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var proxyquire = require('proxyquire');
 require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
-var recursiveAsync = Bluebird.promisify(require('recursive-readdir'));
 var uuid = require('node-uuid');
 
 var storage = require('../server/utils/storage');
 var TarHelper = require('../server/utils/tarHelper');
+var dirHelper = require('../server/utils/dirHelper');
 
 describe('module/storage', function() {
-  var testDataPath;
-
   before(function() {
-    testDataPath = path.join(__dirname, '..', 'test-data');
-    storage._buildsPath = path.join(testDataPath, 'builds');
-    storage._shasPath = path.join(testDataPath, 'shas');
+    storage._buildsPath = path.join(__TESTDATA__, 'builds');
+    storage._shasPath = path.join(__TESTDATA__, 'shas');
   });
 
   after(function() {
-    return fs.removeAsync(testDataPath);
+    return Bluebird.all([
+      fs.removeAsync(storage._buildsPath),
+      fs.removeAsync(storage._shasPath)
+    ]);
   });
 
   it('has _buildsPath', function() {
@@ -159,15 +159,20 @@ describe('module/storage', function() {
 
   describe('#saveImages', function() {
     var tarPath;
+    var browser;
 
     beforeEach(function() {
-      tarPath = path.join(testDataPath, uuid.v4());
-      return TarHelper.createBrowserTar(tarPath);
+      browser = 'Chrome 28';
+      tarPath = path.join(__TESTDATA__, uuid.v4());
+      return TarHelper.createBrowserTar('fakeBrowser', tarPath);
     });
 
-    it('should untar to folder', function() {
+    afterEach(function() {
+      return fs.removeAsync(tarPath);
+    });
+
+    it('should untar to folder without extra folder', function() {
       var sha = uuid.v4();
-      var browser = 'Chrome 28';
       var expectedSavePath = path.join(storage._shasPath, sha, browser);
 
       return storage.saveImages({
@@ -176,10 +181,14 @@ describe('module/storage', function() {
         tarPath: tarPath
       })
       .then(function() {
-        return recursiveAsync(expectedSavePath);
+        return dirHelper.readFiles(expectedSavePath);
       })
       .then(function(files) {
         assert.equal(files.length, 4);
+
+        files.forEach(function(file) {
+          assert(file.indexOf('fakeBrowser') === -1);
+        });
       });
     });
   });
@@ -375,14 +384,16 @@ describe('module/storage', function() {
   });
 
   describe('#getImagesForShaBrowser', function() {
-    var readdirSpy;
+    var readFilesStub;
     var storage;
 
     beforeEach(function() {
-      readdirSpy = this.sinon.stub().callsArgWith(1, null, []);
+      readFilesStub = this.sinon.stub().resolves([]);
 
       storage = proxyquire('../server/utils/storage', {
-        'recursive-readdir': readdirSpy
+        './dirHelper': {
+          readFiles: readFilesStub
+        }
       });
     });
 
@@ -404,7 +415,7 @@ describe('module/storage', function() {
       .then(function() {
         var browserPath = path.join(storage._shasPath, sha, browser);
 
-        assert.calledOnce(readdirSpy.withArgs(browserPath));
+        assert.calledOnce(readFilesStub.withArgs(browserPath));
       });
     });
   });

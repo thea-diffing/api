@@ -4,9 +4,9 @@ var Bluebird = require('bluebird');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
-var tar = require('tar-fs');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
-var recursiveAsync = Bluebird.promisify(require('recursive-readdir'));
+var dirHelper = require('./dirHelper');
+var tarHelper = require('./tarHelper');
 
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
@@ -152,21 +152,7 @@ var Storage = {
 
     return fs.ensureDirAsync(extractPath)
     .then(function() {
-      return new Bluebird(function(resolve, reject) {
-        var readStream = fs.createReadStream(options.tarPath);
-
-        var extract = tar.extract(extractPath);
-
-        extract.on('error', function(err) {
-          reject(err);
-        });
-
-        extract.on('finish', function() {
-          resolve();
-        });
-
-        readStream.pipe(extract);
-      });
+      return tarHelper.extractTar(options.tarPath, extractPath);
     });
   },
 
@@ -193,8 +179,7 @@ var Storage = {
     var browser = options.browser;
 
     var browserPath = path.join(shasPath, sha, browser);
-
-    return recursiveAsync(browserPath);
+    return dirHelper.readFiles(browserPath);
   },
 
   /*
