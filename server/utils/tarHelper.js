@@ -3,9 +3,9 @@
 var Bluebird = require('bluebird');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var fs = Bluebird.promisifyAll(require('fs-extra'));
-var tar = require('tar-fs');
 var path = require('path');
 var uuid = require('node-uuid');
+var Targz = require('tar.gz');
 var dirHelper = require('./dirHelper');
 
 var TarHelper = {
@@ -26,9 +26,9 @@ var TarHelper = {
     return image;
   },
 
-  createBrowserTar: function(fileName) {
+  createBrowserTar: function(browser, fileName) {
     var image = this.createImage();
-    var base = path.join(__dirname, 'path');
+    var base = path.join(__dirname, browser);
     var files = [
       'homepage.search.700.png',
       'homepage.search.1300.png',
@@ -47,30 +47,47 @@ var TarHelper = {
         return image.writeImageAsync(imagePath);
       });
     });
-
     return Bluebird.all(promises)
     .then(function() {
       return fs.ensureDirAsync(path.dirname(fileName));
     })
     .then(function() {
-      return new Bluebird(function(resolve, reject) {
-        var archive = tar.pack(base);
-        var writestream = fs.createWriteStream(fileName);
-
-        writestream.on('finish', function() {
-          resolve();
-        });
-
-        writestream.on('error', function(err) {
-          reject(err);
-        });
-
-        archive.pipe(writestream);
-      });
+      var targz = Bluebird.promisifyAll(new Targz());
+      return targz.compressAsync(base, fileName);
     })
     .then(function() {
       return fs.removeAsync(base);
     });
+  },
+
+  extractTar: function(fileName, extract) {
+    var targz = Bluebird.promisifyAll(new Targz());
+    return targz.extractAsync(fileName, extract)
+    .then(function() {
+      return dirHelper.readFiles(extract);
+    })
+    .then(function(files) {
+      var first = files.map(function(file) {
+        return file.split(path.sep)[0];
+      });
+
+      for (var i = 1; i < first.length; i++) {
+        if (first[i] !== first[i-1]) {
+          return;
+        }
+      }
+
+      var fromPath = path.join(extract, first[0]);
+
+      // all of the files match
+      return fs.copyAsync(fromPath, extract, {
+        clobber: true
+      })
+      .then(function() {
+        return fs.removeAsync(fromPath);
+      });
+    });
+
   },
 
   getFilesInTar: function(fileName) {
@@ -80,21 +97,8 @@ var TarHelper = {
 
     return fs.ensureDirAsync(folder)
     .then(function() {
-      return new Bluebird(function(resolve, reject) {
-        var readStream = fs.createReadStream(fileName);
-
-        var extract = tar.extract(folder);
-
-        extract.on('error', function(err) {
-          reject(err);
-        });
-
-        extract.on('finish', function() {
-          resolve();
-        });
-
-        readStream.pipe(extract);
-      });
+      var targz = Bluebird.promisifyAll(new Targz());
+      return targz.extractAsync(fileName, folder);
     })
     .then(function() {
       return dirHelper.readFiles(folder);

@@ -112,11 +112,13 @@ describe('module/api', function() {
 
         storageStub.saveImages = this.sinon.stub().resolves();
 
-        return TarHelper.createBrowserTar(fileName)
+        var browser = 'Chrome 26';
+
+        return TarHelper.createBrowserTar(browser, fileName)
         .then(function() {
           instance = instance
           .field('sha', sha)
-          .field('browser', 'Chrome 26')
+          .field('browser', browser)
           .attach('images', fileName);
         })
         .then(function() {
