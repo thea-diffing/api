@@ -5,7 +5,6 @@
  */
 
 var Bluebird = require('bluebird');
-var dir = require('node-dir');
 var path = require('path');
 
 var recursiveAsync = Bluebird.promisify(require('recursive-readdir'));
