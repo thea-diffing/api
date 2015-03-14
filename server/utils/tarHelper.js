@@ -61,8 +61,12 @@ var TarHelper = {
   },
 
   extractTar: function(fileName, extract) {
-    var targz = Bluebird.promisifyAll(new Targz());
-    return targz.extractAsync(fileName, extract)
+
+    return fs.removeAsync(extract)
+    .then(function() {
+      var targz = Bluebird.promisifyAll(new Targz());
+      return targz.extractAsync(fileName, extract);
+    })
     .then(function() {
       return dirHelper.readFiles(extract);
     })
