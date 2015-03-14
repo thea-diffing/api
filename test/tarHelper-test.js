@@ -57,17 +57,38 @@ describe('module/tarHelper', function() {
   });
 
   describe('#extractTar', function() {
-    it('saves without an extra folder', function() {
+    var tarFilePath;
+    var extractPath;
+
+    beforeEach(function() {
       var guid = uuid.v4();
       var tmp = path.join(tmpData, uuid.v4());
       var folder = path.join(tmp, guid);
 
-      var tarFilePath = path.join(folder, 'foo.tar.gz');
-      var extractPath = path.join(folder, 'extractPath');
+      tarFilePath = path.join(folder, 'foo.tar.gz');
+      extractPath = path.join(folder, 'extractPath');
 
       var browser = 'Internet Explorer';
 
-      return TarHelper.createBrowserTar(browser, tarFilePath)
+      return TarHelper.createBrowserTar(browser, tarFilePath);
+    });
+
+    it('saves without an extra folder', function() {
+      return TarHelper.extractTar(tarFilePath, extractPath)
+      .then(function() {
+        return dirHelper.readFiles(extractPath);
+      })
+      .then(function(files) {
+        assert.equal(files.length, 4);
+        assert.include(files, 'homepage.form.1300.png');
+        assert.include(files, 'homepage.form.700.png');
+        assert.include(files, 'homepage.search.1300.png');
+        assert.include(files, 'homepage.search.700.png');
+      });
+    });
+
+    it('only contains one set of files if extracted twice', function() {
+      return TarHelper.extractTar(tarFilePath, extractPath)
       .then(function() {
         return TarHelper.extractTar(tarFilePath, extractPath);
       })
@@ -75,6 +96,7 @@ describe('module/tarHelper', function() {
         return dirHelper.readFiles(extractPath);
       })
       .then(function(files) {
+        assert.equal(files.length, 4);
         assert.include(files, 'homepage.form.1300.png');
         assert.include(files, 'homepage.form.700.png');
         assert.include(files, 'homepage.search.1300.png');
