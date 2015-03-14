@@ -134,7 +134,7 @@ var Storage = {
 
       if (status === 'success') {
         delete data.diff;
-      } else if (status === 'failure') {
+      } else if (status === 'failed') {
         data.diff = diff;
       }
 
