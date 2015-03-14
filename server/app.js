@@ -15,6 +15,7 @@ app.use(function(req, res, next) {
 
 require('./config/express')(app);
 require('./routes')(app);
+require('./checkBuild');
 
 // Error handler - has to be last
 if (app.get('env') !== 'production') {
