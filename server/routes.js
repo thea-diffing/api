@@ -11,9 +11,9 @@ module.exports = function(app) {
   /*
   Start a build
   POST params:
-  - HEAD sha
-  - BASE sha
-  - Num Browsers
+  - head string
+  - base string
+  - numBrowsers int
   Response:
   {
       status: "success",

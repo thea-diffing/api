@@ -85,7 +85,7 @@ describe('module/checkBuild', function() {
 
   describe('#diffBuild', function() {
     beforeEach(function() {
-      storageStub.updateBuild = this.sinon.stub();
+      storageStub.updateBuildInfo = this.sinon.stub();
     });
 
     describe('with completed build', function() {
@@ -135,7 +135,7 @@ describe('module/checkBuild', function() {
             id: 'build'
           })
           .then(function() {
-            assert.calledOnce(storageStub.updateBuild
+            assert.calledOnce(storageStub.updateBuildInfo
               .withArgs('build', {
                 status: 'failed',
                 diff: diff
@@ -158,7 +158,7 @@ describe('module/checkBuild', function() {
             id: 'build'
           })
           .then(function() {
-            assert.calledOnce(storageStub.updateBuild
+            assert.calledOnce(storageStub.updateBuildInfo
               .withArgs('build', {
                 status: 'success'
               })

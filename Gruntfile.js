@@ -17,10 +17,10 @@ module.exports = function(grunt) {
           'server.js',
           'server/**/*.{js,json}'
         ],
-        tasks: ['express:dev', 'wait'],
+        tasks: ['express:dev'],
         options: {
           livereload: true,
-          nospawn: true //Without this option specified express won't be reloaded
+          spawn: false
         }
       }
     },
@@ -59,7 +59,7 @@ module.exports = function(grunt) {
     }, 500);
   });
 
-  grunt.registerTask('serve', ['express:dev', 'express-keepalive']);
+  grunt.registerTask('serve', ['express:dev', 'watch']);
   grunt.registerTask('heroku', ['serve']);
 
   grunt.registerTask('default', ['serve']);
