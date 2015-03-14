@@ -25,10 +25,6 @@ function diffSha(payload) {
     });
 
     return Bluebird.all(diffBuildPromises);
-  })
-  .catch(function(err) {
-    console.error('Error running build');
-    console.error(err);
   });
 }
 
