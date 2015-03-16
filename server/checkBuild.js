@@ -6,6 +6,7 @@ var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
 var differ = require('./utils/differ');
 var constants = require('./constants');
+var githubUtils = require('./utils/github');
 
 /*
 payload.sha string
@@ -54,12 +55,31 @@ function diffBuild(options) {
     .then(function(result) {
       if (Object.keys(result).length > 0) {
         return storage.updateBuildInfo(buildId, {
-          status: 'failed',
+          status: 'failure',
           diff: result
+        })
+        .then(function() {
+          return githubUtils.setStatus({
+            sha: buildInfo.head,
+            state: 'failure'
+          });
+        })
+        .then(function() {
+          var message = githubUtils.generateMarkdownMessage(result);
+          return githubUtils.addComment({
+            sha: buildInfo.head,
+            body: message
+          });
         });
       } else {
         return storage.updateBuildInfo(buildId, {
           status: 'success'
+        })
+        .then(function() {
+          return githubUtils.setStatus({
+            sha: buildInfo.head,
+            state: 'success'
+          });
         });
       }
     });

@@ -5,6 +5,7 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var storage = require('../utils/storage');
 var actions = require('../actions');
+var githubUtils = require('../utils/github');
 
 function serveImage(imagePromise, res) {
   imagePromise
@@ -41,9 +42,15 @@ Api.prototype = {
       numBrowsers: numBrowsers
     })
     .then(function(result) {
-      res.status(200).json({
-        status: 'success',
-        build: result.id
+      return githubUtils.setStatus({
+        sha: head,
+        state: 'pending'
+      })
+      .then(function() {
+        res.status(200).json({
+          status: 'success',
+          build: result.id
+        });
       });
     })
     .catch(function() {
