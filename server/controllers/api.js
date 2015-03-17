@@ -6,6 +6,17 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var storage = require('../utils/storage');
 var actions = require('../actions');
 
+function serveImage(imagePromise, res) {
+  imagePromise
+  .then(function(image) {
+    res.setHeader('Content-Type', 'image/png');
+    image.pack().pipe(res);
+  })
+  .catch(function() {
+    res.sendStatus(404);
+  });
+}
+
 function Api() {}
 
 Api.prototype = {
@@ -125,26 +136,25 @@ Api.prototype = {
   getImage: function(req, res) {
     var params = req.params;
 
-    var sha = params.sha;
-    var browser = params.browser;
-    var file = params.file;
-
-    storage.getImage({
-      sha: sha,
-      browser: browser,
-      image: file
-    })
-    .then(function(image) {
-      res.setHeader('Content-Type', 'image/png');
-      image.pack().pipe(res);
-    })
-    .catch(function() {
-      res.sendStatus(404);
+    var getImagePromise = storage.getImage({
+      sha: params.sha,
+      browser: params.browser,
+      image: params.file
     });
+
+    serveImage(getImagePromise, res);
   },
 
   getDiff: function(req, res) {
-    throw new Error('not implemented');
+    var params = req.params;
+
+    var getDiffPromise = storage.getDiff({
+      build: params.build,
+      browser: params.browser,
+      image: params.file
+    });
+
+    serveImage(getDiffPromise, res);
   }
 };
 

@@ -13,6 +13,25 @@ var dataPath = path.join(root, 'data');
 var buildsPath = path.join(dataPath, 'builds');
 var shasPath = path.join(dataPath, 'shas');
 
+function getImageFromPath(path) {
+  return new Bluebird(function(resolve, reject) {
+    var domain = require('domain').create();
+    domain.on('error', function(err) {
+      reject(err);
+    });
+
+    domain.run(function() {
+      PNGImage.readImageAsync(path)
+      .then(function(image) {
+        resolve(image.getImage());
+      })
+      .catch(function(err) {
+        reject(err);
+      });
+    });
+  });
+}
+
 var Storage = {
   /**
   options.head string
@@ -196,23 +215,24 @@ var Storage = {
 
     var imagePath = path.join(shasPath, sha, browser, image);
 
-    return new Bluebird(function(resolve, reject) {
-      var domain = require('domain').create();
-      domain.on('error', function(err) {
-        reject(err);
-      });
+    return getImageFromPath(imagePath);
+  },
 
-      domain.run(function() {
-        PNGImage.readImageAsync(imagePath)
-        .then(function(image) {
-          resolve(image.getImage());
-        })
-        .catch(function(err) {
-          reject(err);
-        });
-      });
+  /*
+  options.build string
+  options.browser string
+  options.image string
 
-    });
+  resolve pngjs
+  */
+  getDiff: function(options) {
+    var build = options.build;
+    var browser = options.browser;
+    var image = options.image;
+
+    var imagePath = path.join(buildsPath, build, browser, image);
+
+    return getImageFromPath(imagePath);
   },
 
   /*
@@ -258,6 +278,15 @@ if (process.env.NODE_ENV === 'test') {
     },
     set: function(newPath) {
       shasPath = newPath;
+    }
+  });
+
+  Object.defineProperty(Storage, '_getImageFromPath', {
+    get: function() {
+      return getImageFromPath;
+    },
+    set: function(newFunc) {
+      getImageFromPath = newFunc;
     }
   });
 }

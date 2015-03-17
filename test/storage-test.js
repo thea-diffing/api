@@ -421,7 +421,7 @@ describe('module/storage', function() {
     });
   });
 
-  describe('#getImage', function() {
+  describe('#_getImageFromPath', function() {
     it('should return width, height, and data', function() {
       var imageData = TarHelper.createImage();
 
@@ -437,11 +437,7 @@ describe('module/storage', function() {
         return imageData.writeImageAsync(imagePath);
       })
       .then(function() {
-        return storage.getImage({
-          sha: sha,
-          browser: browser,
-          image: image
-        });
+        return storage._getImageFromPath(imagePath);
       })
       .then(function(image) {
         assert.isDefined(image.width);
@@ -452,13 +448,39 @@ describe('module/storage', function() {
     });
 
     it('should reject if no image', function() {
-      var guid = uuid.v4();
+      var badFile = path.join(__dirname, 'foo.png');
 
-      assert.isRejected(storage.getImage({
-        sha: guid,
-        browser: guid,
-        image: guid
-      }));
+      assert.isRejected(storage._getImageFromPath(badFile));
+    });
+  });
+
+  describe('#getImage', function() {
+    it('calls getImageFromPath', function() {
+      storage._getImageFromPath = this.sinon.stub().resolves();
+
+      storage.getImage({
+        sha: 'sha',
+        browser: 'browser',
+        image: 'file.png'
+      })
+      .then(function() {
+        assert.calledOnce(storage._getImageFromPath);
+      });
+    });
+  });
+
+  describe('#getDff', function() {
+    it('calls getImageFromPath', function() {
+      storage._getImageFromPath = this.sinon.stub().resolves();
+
+      storage.getDiff({
+        build: 'build',
+        browser: 'browser',
+        image: 'file.png'
+      })
+      .then(function() {
+        assert.calledOnce(storage._getImageFromPath);
+      });
     });
   });
 
