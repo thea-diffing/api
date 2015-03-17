@@ -104,7 +104,7 @@ module.exports = function(app) {
   Get the image for the SHA. These routes can be used to in <img> tags
   */
   app.route('/api/image/:sha/:browser/:file').get(api.getImage);
-  app.route('/api/diff/:sha/:browser/:file').get(api.getDiff);
+  app.route('/api/diff/:build/:browser/:file').get(api.getDiff);
 
   // All undefined routes should return a 404
   app.route('/*').get(function(req, res) {

@@ -286,20 +286,34 @@ describe('module/api', function() {
   });
 
   describe('#getImage', function() {
-    describe('with valid params', function() {
-      it('should render an image if exists', function() {
-        var img = TarHelper.createImage();
-        storageStub.getImage = this.sinon.stub().resolves(img.getImage());
+    it('should render an image if exists', function() {
+      var img = TarHelper.createImage();
+      storageStub.getImage = this.sinon.stub().resolves(img.getImage());
 
-        return api.get('/api/image/sha/browser/foo.png')
-        .expect(200);
-      });
+      return api.get('/api/image/sha/browser/foo.png')
+      .expect(200);
+    });
 
-      it('should 404 if image does not exist', function() {
-        storageStub.getImage = this.sinon.stub().rejects();
-        return api.get('/api/image/sha/browser/foo.png')
-        .expect(404);
-      });
+    it('should 404 if image does not exist', function() {
+      storageStub.getImage = this.sinon.stub().rejects();
+      return api.get('/api/image/sha/browser/foo.png')
+      .expect(404);
+    });
+  });
+
+  describe('#getDiff', function() {
+    it('should render an image if exists', function() {
+      var img = TarHelper.createImage();
+      storageStub.getDiff = this.sinon.stub().resolves(img.getImage());
+
+      return api.get('/api/diff/build/browser/foo.png')
+      .expect(200);
+    });
+
+    it('should 404 if image does not exist', function() {
+      storageStub.getDiff = this.sinon.stub().rejects();
+      return api.get('/api/diff/build/browser/foo.png')
+      .expect(404);
     });
   });
 });
