@@ -123,7 +123,34 @@ Api.prototype = {
   },
 
   getImage: function(req, res) {
-    throw new Error('not implemented');
+    var params = req.params;
+
+    var sha = params.sha;
+    var browser = params.browser;
+    var file = params.file;
+
+    if (!sha || !browser || !file) {
+      res.status(400).json({
+        status: 'failure',
+        message: 'invalid arguments'
+      });
+      return;
+    }
+
+    storage.getImage({
+      sha: sha,
+      browser: browser,
+      image: file
+    })
+    .then(function(image) {
+      res.setHeader('Content-Type', 'image/png');
+      image.pack().pipe(res);
+    }, function() {
+      res.sendStatus(404);
+    })
+    .catch(function() {
+      res.sendStatus(500);
+    });
   },
 
   getDiff: function(req, res) {

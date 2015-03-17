@@ -16,6 +16,7 @@
     "multer": "^0.1.8",
     "node-resemble-js": "0.0.4",
     "node-uuid": "^1.4.2",
+    "pngjs-image": "^0.9.3",
     "recursive-readdir": "^1.2.1",
     "symbol": "^0.2.1",
     "tar.gz": "^0.1.1"
@@ -31,7 +32,6 @@
     "jshint": "^2.6.3",
     "mocha": "^2.1.0",
     "mocha-sinon": "^1.1.4",
-    "pngjs-image": "^0.9.3",
     "proxyquire": "^1.4.0",
     "sinon": "^1.13.0",
     "sinon-as-promised": "^2.0.3",

@@ -284,4 +284,21 @@ describe('module/api', function() {
       });
     });
   });
+
+  describe('#getImage', function() {
+    describe('with valid params', function() {
+      it('should render an image if exists', function() {
+        var img = TarHelper.createImage();
+        storageStub.getImage = this.sinon.stub().resolves(img.getImage());
+
+        return api.get('/api/image/sha/browser/foo.png')
+        .expect(200);
+      });
+
+      it('should 404 if image does not exist', function() {
+        return api.get('/api/imge/sha/browser/foo.png')
+        .expect(404);
+      });
+    });
+  });
 });
