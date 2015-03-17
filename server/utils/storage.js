@@ -196,9 +196,22 @@ var Storage = {
 
     var imagePath = path.join(shasPath, sha, browser, image);
 
-    return PNGImage.readImageAsync(imagePath)
-    .then(function(image) {
-      return image.getImage();
+    return new Bluebird(function(resolve, reject) {
+      var domain = require('domain').create();
+      domain.on('error', function(err) {
+        reject(err);
+      });
+
+      domain.run(function() {
+        PNGImage.readImageAsync(imagePath)
+        .then(function(image) {
+          resolve(image.getImage());
+        })
+        .catch(function(err) {
+          reject(err);
+        });
+      });
+
     });
   },
 

@@ -450,6 +450,16 @@ describe('module/storage', function() {
         assert.isDefined(image.gamma);
       });
     });
+
+    it('should reject if no image', function() {
+      var guid = uuid.v4();
+
+      assert.isRejected(storage.getImage({
+        sha: guid,
+        browser: guid,
+        image: guid
+      }));
+    });
   });
 
   describe('#saveDiffImage', function() {
