@@ -296,7 +296,8 @@ describe('module/api', function() {
       });
 
       it('should 404 if image does not exist', function() {
-        return api.get('/api/imge/sha/browser/foo.png')
+        storageStub.getImage = this.sinon.stub().rejects();
+        return api.get('/api/image/sha/browser/foo.png')
         .expect(404);
       });
     });
