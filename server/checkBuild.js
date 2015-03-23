@@ -40,49 +40,55 @@ function diffBuild(options) {
   return storage.getBuildInfo(buildId)
   .then(function(info) {
     buildInfo = info;
-    return storage.getBrowsersForSha(info.head);
-  })
-  .then(function(browsers) {
-    if (browsers.length < buildInfo.numBrowsers) {
-      return;
-    }
 
-    return diffCommonBrowsers({
-      build: buildId,
-      head: buildInfo.head,
-      base: buildInfo.base
-    })
-    .then(function(result) {
-      if (Object.keys(result).length > 0) {
-        return storage.updateBuildInfo(buildId, {
-          status: 'failure',
-          diff: result
+    if (buildInfo.status === 'pending') {
+      console.log('diffing build', buildId);
+
+      return storage.getBrowsersForSha(info.head)
+      .then(function(browsers) {
+        if (browsers.length < buildInfo.numBrowsers) {
+          return;
+        }
+
+        return diffCommonBrowsers({
+          build: buildId,
+          head: buildInfo.head,
+          base: buildInfo.base
         })
-        .then(function() {
-          return githubUtils.setStatus({
-            sha: buildInfo.head,
-            state: 'failure'
-          });
-        })
-        .then(function() {
-          var message = githubUtils.generateMarkdownMessage(result);
-          return githubUtils.addComment({
-            sha: buildInfo.head,
-            body: message
-          });
+        .then(function(result) {
+          if (Object.keys(result).length > 0) {
+            return storage.updateBuildInfo(buildId, {
+              status: 'failure',
+              diff: result
+            })
+            .then(function() {
+              return githubUtils.setStatus({
+                sha: buildInfo.head,
+                state: 'failure'
+              });
+            })
+            .then(function() {
+              var message = githubUtils.generateMarkdownMessage(buildInfo, result);
+              console.log('setting comment');
+              return githubUtils.addComment({
+                sha: buildInfo.head,
+                body: message
+              });
+            });
+          } else {
+            return storage.updateBuildInfo(buildId, {
+              status: 'success'
+            })
+            .then(function() {
+              return githubUtils.setStatus({
+                sha: buildInfo.head,
+                state: 'success'
+              });
+            });
+          }
         });
-      } else {
-        return storage.updateBuildInfo(buildId, {
-          status: 'success'
-        })
-        .then(function() {
-          return githubUtils.setStatus({
-            sha: buildInfo.head,
-            state: 'success'
-          });
-        });
-      }
-    });
+      });
+    }
   });
 }
 
