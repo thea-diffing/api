@@ -35,6 +35,14 @@ describe('module/storage', function() {
     assert(storage._shasPath !== undefined);
   });
 
+  describe('#createProject', function() {
+    it('should create a json file in a folder');
+  });
+
+  describe('#getProjectInfo', function() {
+    it('should return info about the build');
+  });
+
   describe('#startBuild', function() {
     var buildOptions;
 

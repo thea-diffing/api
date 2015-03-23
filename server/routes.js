@@ -9,6 +9,35 @@ module.exports = function(app) {
   // Server API Routes
 
   /*
+  Create a new project to hold builds
+  POST params:
+
+  DVCS Name: {
+    DVCS Options
+  }
+
+  Example:
+
+  Github: {
+    user: 'VisualTesting',
+    repository: 'test-example'
+  }
+
+  Response:
+  {
+    status: "failure",
+    message: "unsupported DVCS"
+  }
+
+  {
+    status: "success",
+    project: GUID
+  }
+
+  */
+  app.route('/api/createProject').post(api.createProject);
+
+  /*
   Start a build
   POST params:
   - head string

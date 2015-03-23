@@ -34,6 +34,14 @@ function getImageFromPath(path) {
 }
 
 var Storage = {
+  createProject: function(options) {
+
+  },
+
+  getProjectInfo: function(id) {
+
+  },
+
   startBuild: function(options) {
     assert.isObject(options);
     assert.isString(options.head);

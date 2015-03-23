@@ -21,6 +21,10 @@ function serveImage(imagePromise, res) {
 function Api() {}
 
 Api.prototype = {
+  createProject: function(req, res) {
+
+  },
+
   startBuild: function(req, res) {
     var params = req.body;
 

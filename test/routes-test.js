@@ -13,6 +13,7 @@ describe('routes', function() {
   beforeEach(function() {
     apiStub = {
       '@global': true,
+      createProject: this.sinon.stub(),
       startBuild: this.sinon.stub(),
       upload: this.sinon.stub(),
       getBuild: this.sinon.stub(),

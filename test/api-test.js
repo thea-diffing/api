@@ -40,12 +40,25 @@ describe('module/api', function() {
     api = request(app);
   });
 
+  describe('#createProject', function() {
+    describe('with empty params', function() {
+      it('should return 500');
+      it('should return failure');
+    });
+
+    it('should return unsupported dvcs if not known service');
+    describe('with valid params', function() {
+      it('should return 200');
+      it('should return a project id');
+    });
+  });
+
   describe('#startBuild', function() {
     beforeEach(function() {
       instance = api.post('/api/startBuild');
     });
 
-    describe('with invalid params', function() {
+    describe('with empty params', function() {
       it('should return 500', function() {
         return instance.expect(400);
       });
