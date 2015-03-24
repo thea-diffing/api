@@ -13,6 +13,7 @@
     "grunt-cli": "^0.1.13",
     "grunt-express-server": "~0.4.5",
     "load-grunt-tasks": "~3.1.0",
+    "merge": "^1.2.0",
     "method-override": "~2.3.1",
     "morgan": "~1.5.1",
     "multer": "^0.1.8",
