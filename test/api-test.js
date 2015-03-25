@@ -8,6 +8,8 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var TarHelper = require('../server/utils/tarHelper');
 
+var githubStub = require('./fixtures/asyncGithubMock');
+
 describe('module/api', function() {
   var storageStub;
   var actionsStub;
@@ -31,7 +33,8 @@ describe('module/api', function() {
 
     var app = proxyquire('../server/app', {
       '../utils/storage': storageStub,
-      '../actions': actionsStub
+      '../actions': actionsStub,
+      './asyncGithub': githubStub
     });
 
     api = request(app);

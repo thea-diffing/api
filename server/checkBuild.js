@@ -56,9 +56,10 @@ function diffBuild(options) {
           base: buildInfo.base
         })
         .then(function(result) {
+
           if (Object.keys(result).length > 0) {
             return storage.updateBuildInfo(buildId, {
-              status: 'failure',
+              status: 'failed',
               diff: result
             })
             .then(function() {
