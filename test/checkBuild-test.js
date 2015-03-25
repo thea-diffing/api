@@ -646,7 +646,6 @@ describe('module/checkBuild', function() {
           });
         });
       });
-
     });
   });
 });
