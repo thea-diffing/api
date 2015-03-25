@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('chai').assert;
 var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
@@ -28,10 +29,10 @@ function diffSha(payload) {
   });
 }
 
-/*
-options.id string
-*/
 function diffBuild(options) {
+  assert.isObject(options);
+  assert.isString(options.id);
+
   var buildId = options.id;
   var buildInfo;
 
@@ -65,12 +66,12 @@ function diffBuild(options) {
   });
 }
 
-/*
-options.build string
-options.head string
-options.base string
-*/
 function diffCommonBrowsers(options) {
+  assert.isObject(options);
+  assert.isString(options.build);
+  assert.isString(options.head);
+  assert.isString(options.base);
+
   var build = options.build;
   var head = options.head;
   var base = options.base;
@@ -115,13 +116,13 @@ function diffCommonBrowsers(options) {
   });
 }
 
-/*
-options.build string
-options.head string
-options.base string
-options.browser string
-*/
 function diffBrowser(options) {
+  assert.isObject(options);
+  assert.isString(options.build);
+  assert.isString(options.head);
+  assert.isString(options.base);
+  assert.isString(options.browser);
+
   var build = options.build;
   var head = options.head;
   var base = options.base;
@@ -167,18 +168,19 @@ function diffBrowser(options) {
 }
 
 /*
-options.build string
-options.head string
-options.base string
-options.browser string
-options.image string
-
 resolves
 {
   diff: true/false
 }
 */
 function diffImage(options) {
+  assert.isObject(options);
+  assert.isString(options.build);
+  assert.isString(options.head);
+  assert.isString(options.base);
+  assert.isString(options.browser);
+  assert.isString(options.image);
+
   var build = options.build;
   var head = options.head;
   var base = options.base;
