@@ -46,6 +46,53 @@ describe('module/storage', function() {
       };
     });
 
+    describe('with invalid args', function() {
+      it('should throw with no arg', function() {
+        assert.throws(function() {
+          return storage.startBuild();
+        });
+      });
+
+      it('should throw with only an object', function() {
+        assert.throws(function() {
+          return storage.startBuild({});
+        });
+      });
+
+      it('should throw with only head', function() {
+        assert.throws(function() {
+          return storage.startBuild({
+            head: 'head'
+          });
+        });
+      });
+
+      it('should throw with only base', function() {
+        assert.throws(function() {
+          return storage.startBuild({
+            base: 'base'
+          });
+        });
+      });
+
+      it('should throw with numBrowsers as string', function() {
+        assert.throws(function() {
+          return storage.startBuild({
+            numBrowsers: '4'
+          });
+        });
+      });
+
+      it('should throw without numBrowsers', function() {
+        assert.throws(function() {
+          return storage.startBuild({
+            head: 'head',
+            base: 'base'
+          });
+        });
+      });
+    });
+
     it('should return an id', function() {
       return storage.startBuild(buildOptions)
       .then(function(data) {
@@ -92,6 +139,30 @@ describe('module/storage', function() {
   });
 
   describe('#addBuildToSha', function() {
+    describe('with invalid args', function() {
+      it('should throw with no arg', function() {
+        assert.throws(function() {
+          return storage.addBuildToSha();
+        });
+      });
+
+      it('should throw with only build', function() {
+        assert.throws(function() {
+          return storage.addBuildToSha({
+            build: 'build'
+          });
+        });
+      });
+
+      it('should throw with only sha', function() {
+        assert.throws(function() {
+          return storage.addBuildToSha({
+            sha: 'sha'
+          });
+        });
+      });
+    });
+
     it('without existing sha creates a builds.json file', function() {
       var build = uuid.v4();
       var sha = uuid.v4();
@@ -137,6 +208,20 @@ describe('module/storage', function() {
   });
 
   describe('#getBuildsForSha', function() {
+    describe('with invalid args', function() {
+      it('should throw with no arg', function() {
+        assert.throws(function() {
+          return storage.getBuildsForSha();
+        });
+      });
+
+      it('should throw with non string sha', function() {
+        assert.throws(function() {
+          return storage.getBuildsForSha(4);
+        });
+      });
+    });
+
     it('should reject if no build', function() {
       assert.isRejected(storage.getBuildsForSha('asfd'));
     });
@@ -201,6 +286,14 @@ describe('module/storage', function() {
       numBrowsers: 3
     };
 
+    describe('with invalid args', function() {
+      it('should throw with non string id', function() {
+        assert.throws(function() {
+          return storage.hasBuild(4);
+        });
+      });
+    });
+
     it('should have no build if startBuild not called', function() {
       return storage.hasBuild('asdf')
       .then(function(status) {
@@ -230,6 +323,14 @@ describe('module/storage', function() {
   });
 
   describe('#getBuildInfo', function() {
+    describe('with invalid args', function() {
+      it('should throw with non string id', function() {
+        assert.throws(function() {
+          return storage.hasBuild(4);
+        });
+      });
+    });
+
     it('should reject non existent build', function() {
       assert.isRejected(storage.getBuildInfo('foo'), /Unknown Build/);
     });

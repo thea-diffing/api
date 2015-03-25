@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('chai').assert;
 var Bluebird = require('bluebird');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
@@ -33,12 +34,12 @@ function getImageFromPath(path) {
 }
 
 var Storage = {
-  /**
-  options.head string
-  options.base string
-  options.numbBrowsers number
-  */
   startBuild: function(options) {
+    assert.isObject(options);
+    assert.isString(options.head);
+    assert.isString(options.base);
+    assert.isNumber(options.numBrowsers);
+
     var guid = uuid.v4();
 
     var buildFile = path.join(buildsPath, guid, 'build.json');
@@ -69,11 +70,11 @@ var Storage = {
     });
   },
 
-  /*
-  build string
-  sha string
-  */
   addBuildToSha: function(options) {
+    assert.isObject(options);
+    assert.isString(options.build);
+    assert.isString(options.sha);
+
     var build = options.build;
     var sha = options.sha;
 
@@ -98,6 +99,8 @@ var Storage = {
   },
 
   getBuildsForSha: function(sha) {
+    assert.isString(sha);
+
     var shaBuildsPath = path.join(shasPath, sha);
     var shaBuildsFile = path.join(shaBuildsPath, 'builds.json');
 
@@ -112,10 +115,9 @@ var Storage = {
     });
   },
 
-  /*
-  id string
-  */
   hasBuild: function(id) {
+    assert.isString(id);
+
     return fs.statAsync(path.join(buildsPath, id))
     .then(function(stat) {
       return stat.isDirectory();
@@ -125,10 +127,9 @@ var Storage = {
     });
   },
 
-  /*
-  id string
-  */
   getBuildInfo: function(id) {
+    assert.isString(id);
+
     var buildFile = path.join(buildsPath, id, 'build.json');
 
     return fs.readJSONAsync(buildFile)
@@ -137,12 +138,15 @@ var Storage = {
     });
   },
 
-  /*
-  id string
-  options.status string
-  [options.diff object]
-  */
   updateBuildInfo: function(id, options) {
+    assert.isString(id);
+    assert.isObject(options);
+    assert.include(['success', 'failed'], options.status);
+
+    if (options.diff) {
+      assert.isObject(options.diff);
+    }
+
     var buildFile = path.join(buildsPath, id, 'build.json');
     var status = options.status;
     var diff = options.diff;
@@ -161,12 +165,11 @@ var Storage = {
     });
   },
 
-  /*
-  options.sha string
-  options.browser string
-  options.tarPath string
-  */
   saveImages: function(options) {
+    assert.isObject(options);
+    assert.isString(options.browser);
+    assert.isString(options.tarPath);
+
     var extractPath = path.join(shasPath, options.sha, options.browser);
 
     return fs.ensureDirAsync(extractPath)
@@ -175,10 +178,9 @@ var Storage = {
     });
   },
 
-  /*
-  sha string
-  */
   getBrowsersForSha: function(sha) {
+    assert.isString(sha);
+
     var shaPath = path.join(shasPath, sha);
 
     return fs.readdirAsync(shaPath)
@@ -189,11 +191,11 @@ var Storage = {
     });
   },
 
-  /*
-  options.sha string
-  options.browser string
-  */
   getImagesForShaBrowser: function(options) {
+    assert.isObject(options);
+    assert.isString(options.sha);
+    assert.isString(options.browser);
+
     var sha = options.sha;
     var browser = options.browser;
 
@@ -202,13 +204,13 @@ var Storage = {
   },
 
   /*
-  options.sha string
-  options.browser string
-  options.image string
-
   resolves pngjs
   */
   getImage: function(options) {
+    assert.isObject(options);
+    assert.isString(options.browser);
+    assert.isString(options.image);
+
     var sha = options.sha;
     var browser = options.browser;
     var image = options.image;
@@ -219,13 +221,14 @@ var Storage = {
   },
 
   /*
-  options.build string
-  options.browser string
-  options.image string
-
   resolve pngjs
   */
   getDiff: function(options) {
+    assert.isObject(options);
+    assert.isString(options.build);
+    assert.isString(options.browser);
+    assert.isString(options.image);
+
     var build = options.build;
     var browser = options.browser;
     var image = options.image;
@@ -242,6 +245,13 @@ var Storage = {
   options.imageData pngjs
   */
   saveDiffImage: function(options) {
+    assert.isObject(options);
+    assert.isString(options.build);
+    assert.isString(options.browser);
+    assert.isString(options.imageName);
+    assert.isObject(options.imageData);
+    assert.property(options.imageData, 'pack');
+
     var build = options.build;
     var browser = options.browser;
     var imageName = options.imageName;
