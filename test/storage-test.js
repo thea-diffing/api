@@ -428,7 +428,7 @@ describe('module/storage', function() {
 
       beforeEach(function() {
         projectSettings = {};
-      })
+      });
 
       it('should reject non existent project', function() {
         return assert.isRejected(storage.getBuildInfo({
