@@ -40,25 +40,12 @@ describe('module/api', function() {
     api = request(app);
   });
 
-  describe('#createProject', function() {
-    describe('with empty params', function() {
-      it('should return 500');
-      it('should return failure');
-    });
-
-    it('should return unsupported dvcs if not known service');
-    describe('with valid params', function() {
-      it('should return 200');
-      it('should return a project id');
-    });
-  });
-
   describe('#startBuild', function() {
     beforeEach(function() {
       instance = api.post('/api/startBuild');
     });
 
-    describe('with empty params', function() {
+    describe('with invalid params', function() {
       it('should return 500', function() {
         return instance.expect(400);
       });
@@ -75,6 +62,7 @@ describe('module/api', function() {
 
     describe('with valid params', function() {
       var params = {
+        project: 'project',
         head: 'head',
         base: 'base',
         numBrowsers: 2
@@ -133,6 +121,7 @@ describe('module/api', function() {
         return TarHelper.createBrowserTar(browser, fileName)
         .then(function() {
           instance = instance
+          .field('project', 'project')
           .field('sha', sha)
           .field('browser', browser)
           .attach('images', fileName);
@@ -202,6 +191,7 @@ describe('module/api', function() {
           storageStub.hasBuild = this.sinon.stub().resolves(false);
 
           instance = instance.send({
+            project: 'project',
             id: 'foo'
           });
         });
@@ -238,6 +228,7 @@ describe('module/api', function() {
 
         return api.get('/api/getBuild')
         .send({
+          project: 'project',
           id: 'buildId'
         })
         .expect(200)
@@ -259,6 +250,7 @@ describe('module/api', function() {
 
         return api.get('/api/getBuild')
         .send({
+          project: 'project',
           id: 'buildId'
         })
         .expect(200)
@@ -290,6 +282,7 @@ describe('module/api', function() {
 
         return api.get('/api/getBuild')
         .send({
+          project: 'project',
           id: 'buildId'
         })
         .expect(200)
@@ -306,13 +299,13 @@ describe('module/api', function() {
       var img = TarHelper.createImage();
       storageStub.getImage = this.sinon.stub().resolves(img.getImage());
 
-      return api.get('/api/image/sha/browser/foo.png')
+      return api.get('/api/image/project/sha/browser/foo.png')
       .expect(200);
     });
 
     it('should 404 if image does not exist', function() {
       storageStub.getImage = this.sinon.stub().rejects();
-      return api.get('/api/image/sha/browser/foo.png')
+      return api.get('/api/image/project/sha/browser/foo.png')
       .expect(404);
     });
   });
@@ -322,13 +315,13 @@ describe('module/api', function() {
       var img = TarHelper.createImage();
       storageStub.getDiff = this.sinon.stub().resolves(img.getImage());
 
-      return api.get('/api/diff/build/browser/foo.png')
+      return api.get('/api/diff/project/build/browser/foo.png')
       .expect(200);
     });
 
     it('should 404 if image does not exist', function() {
       storageStub.getDiff = this.sinon.stub().rejects();
-      return api.get('/api/diff/build/browser/foo.png')
+      return api.get('/api/diff/project/build/browser/foo.png')
       .expect(404);
     });
   });

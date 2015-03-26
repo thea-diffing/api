@@ -28,11 +28,12 @@ Api.prototype = {
   startBuild: function(req, res) {
     var params = req.body;
 
+    var project = params.project;
     var head = params.head;
     var base = params.base;
     var numBrowsers = params.numBrowsers;
 
-    if (!head || !base || !numBrowsers) {
+    if (!project || !head || !base || !numBrowsers) {
       res.status(400).json({
         status: 'failure',
         message: 'invalid arguments'
@@ -68,19 +69,21 @@ Api.prototype = {
   upload: function(req, res) {
     var params = req.body;
 
+    var project;
     var sha;
     var browser;
     var files;
     var images;
 
     try {
+      project = params.project;
       sha = params.sha;
       browser = params.browser;
       files = req.files;
       images = files.images;
     }
     finally {
-      if (!sha || !browser || !files || !images) {
+      if (!project || !sha || !browser || !files || !images) {
         res.status(400).json({
           status: 'failure',
           message: 'invalid arguments'
@@ -113,9 +116,10 @@ Api.prototype = {
   },
 
   getBuild: function(req, res) {
+    var project = req.body.project;
     var buildId = req.body.id;
 
-    if (!buildId) {
+    if (!project || !buildId) {
       res.status(400).json({
         status: 'failure',
         message: 'invalid arguments'
