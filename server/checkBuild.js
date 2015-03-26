@@ -42,8 +42,6 @@ function diffBuild(options) {
     buildInfo = info;
 
     if (buildInfo.status === 'pending') {
-      console.log('diffing build', buildId);
-
       return storage.getBrowsersForSha(info.head)
       .then(function(browsers) {
         if (browsers.length < buildInfo.numBrowsers) {
@@ -70,7 +68,6 @@ function diffBuild(options) {
             })
             .then(function() {
               var message = githubUtils.generateMarkdownMessage(buildInfo, result);
-              console.log('setting comment');
               return githubUtils.addComment({
                 sha: buildInfo.head,
                 body: message
