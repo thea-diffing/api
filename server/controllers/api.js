@@ -42,6 +42,7 @@ Api.prototype = {
     }
 
     storage.startBuild({
+      project: project,
       head: head,
       base: base,
       numBrowsers: numBrowsers
@@ -94,6 +95,7 @@ Api.prototype = {
 
     // TODO: validate the structure of the tar file
     storage.saveImages({
+      project: project,
       sha: sha,
       browser: browser,
       tarPath: images.path
@@ -127,10 +129,16 @@ Api.prototype = {
       return;
     }
 
-    storage.hasBuild(buildId)
+    storage.hasBuild({
+      project: project,
+      build: buildId
+    })
     .then(function(exists) {
       if (exists) {
-        return storage.getBuildInfo(buildId)
+        return storage.getBuildInfo({
+          project: project,
+          build: buildId
+        })
         .then(function(info) {
           res.status(200).json(info);
         });
@@ -152,6 +160,7 @@ Api.prototype = {
     var params = req.params;
 
     var getImagePromise = storage.getImage({
+      project: params.project,
       sha: params.sha,
       browser: params.browser,
       image: params.file
@@ -164,6 +173,7 @@ Api.prototype = {
     var params = req.params;
 
     var getDiffPromise = storage.getDiff({
+      project: params.project,
       build: params.build,
       browser: params.browser,
       image: params.file
