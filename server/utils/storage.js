@@ -49,14 +49,14 @@ var Storage = {
   },
 
   hasProject: function(project) {
-    return new Bluebird(function(resolve, reject) {
+    return new Bluebird(function(resolve) {
       var domain = require('domain').create();
-      domain.on('error', function(err) {
+      domain.on('error', function() {
         resolve(false);
       });
 
       domain.run(function() {
-        return fs.statAsync(path.join(dataPath, project), 'project.json')
+        fs.statAsync(path.join(dataPath, project, 'project.json'))
         .then(function(stat) {
           resolve(stat.isFile());
         })
