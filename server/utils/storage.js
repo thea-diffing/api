@@ -12,12 +12,16 @@ var tarHelper = require('./tarHelper');
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
 
+function getProjectPath(project) {
+  return path.join(dataPath, project);
+}
+
 function getBuildsPath(project) {
-  return path.join(dataPath, project, 'builds');
+  return path.join(getProjectPath(project), 'builds');
 }
 
 function getShasPath(project) {
-  return path.join(dataPath, project, 'shas');
+  return path.join(getProjectPath(project), 'shas');
 }
 
 function getImageFromPath(path) {
@@ -40,12 +44,19 @@ function getImageFromPath(path) {
 }
 
 var Storage = {
-  createProject: function(settings) {
-    assert.isObject(settings);
+  createProject: function(options) {
+    assert.isObject(options);
 
     var guid = uuid.v4();
+    var projectFile = path.join(getProjectPath(guid), 'project.json');
+    options.id = guid;
 
-    return Bluebird.resolve(guid);
+    return fs.outputJSONAsync(projectFile, options)
+    .then(function() {
+      return {
+        id: guid
+      };
+    });
   },
 
   hasProject: function(project) {
@@ -410,6 +421,7 @@ if (process.env.NODE_ENV === 'test') {
     }
   });
 
+  Storage._getProjectPath = getProjectPath;
   Storage._getBuildsPath = getBuildsPath;
   Storage._getShasPath = getShasPath;
 }

@@ -52,18 +52,61 @@ describe('module/storage', function() {
   });
 
   describe('#createProject', function() {
-    it('should create a json file in a folder');
+    describe('with invalid args', function() {
+      it('should throw with no arg', function() {
+        assert.throws(function() {
+          return storage.createProject();
+        });
+      });
+
+      it('should throw with non object arg', function() {
+        assert.throws(function() {
+          return storage.createProject('string');
+        });
+      });
+    });
+
+    describe('with valid args', function() {
+      var options;
+
+      beforeEach(function() {
+        options = {
+          github: {
+            repository: 'foo'
+          }
+        };
+      });
+
+      it('should return an object with id', function() {
+        return storage.createProject(options)
+        .then(function(result) {
+          assert.isObject(result);
+          assert.isString(result.id);
+        });
+      });
+
+      it('should create a folder with json file', function() {
+        var result;
+
+        return storage.createProject(options)
+        .then(function(data) {
+          result = data;
+          var dir = storage._getProjectPath(data.id);
+          var file = path.join(dir, 'project.json');
+          return fs.readJSONAsync(file);
+        })
+        .then(function(data) {
+          assert.isObject(data);
+          assert.isString(data.id);
+          assert.equal(result.id, data.id);
+          assert.shallowDeepEqual(data, options);
+        });
+      });
+    });
   });
 
   describe('#getProjectInfo', function() {
     it('should return info about the build');
-  });
-
-  describe('#createProject', function() {
-    it('resolves with an id');
-
-    it('creates a folder');
-    it('has a project.json file with settings');
   });
 
   describe('#startBuild', function() {
