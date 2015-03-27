@@ -54,12 +54,6 @@ describe('module/storage', function() {
     });
   });
 
-  describe('#hasBuild', function() {
-    it('throws if project does not exist');
-    it('returns false if build does not exist');
-    it('returns true if project exists');
-  });
-
   describe('#createProject', function() {
     describe('with invalid args', function() {
       it('should throw with no arg', function() {
@@ -410,48 +404,47 @@ describe('module/storage', function() {
         numBrowsers: 3
       };
 
-      it('should have no build if project does not exist');
+      it('should resolve false if project does not exist', function() {
+        return assert.eventually.isFalse(storage.hasBuild({
+          project: 'project',
+          build: 'build'
+        }));
+      });
 
-      it('should have no build if startBuild not called', function() {
+      it('should resolve false if no build', function() {
         return storage.createProject(projectOptions)
         .then(function(project) {
-          return storage.hasBuild({
-            project: project,
-            build: 'asdf'
-          })
-          .then(function(status) {
-            assert.isFalse(status);
-          });
+          assert.eventually.isFalse(storage.hasBuild({
+            project: project.id,
+            build: 'build'
+          }));
         });
       });
 
-      it('should have build if startBuild called', function() {
+      it('should resolve true if build exists', function() {
         return storage.createProject(projectOptions)
         .then(function(project) {
-          buildOptions.project = project;
+          buildOptions.project = project.id;
+
+          return storage.startBuild(buildOptions);
+        })
+        .then(function(data) {
+          assert.eventually.isTrue(storage.hasBuild({
+            project: buildOptions.project,
+            build: data.id
+          }));
+        });
+      });
+
+      it('should resolve false if called with different id than startBuild', function() {
+        return storage.createProject(projectOptions)
+        .then(function(project) {
+          buildOptions.project = project.id;
 
           return storage.startBuild(buildOptions)
           .then(function(data) {
             return storage.hasBuild({
-              project: project,
-              build: data.id
-            });
-          })
-          .then(function(status) {
-            assert.isTrue(status);
-          });
-        });
-      });
-
-      it('should not have build if different id than startBuild', function() {
-        return storage.createProject(projectOptions)
-        .then(function(project) {
-          buildOptions.project = project;
-
-          return storage.startBuild(buildOptions)
-          .then(function(data) {
-            return storage.hasBuild({
-              project: project,
+              project: buildOptions.project,
               build: data.id + '_'
             });
           })

@@ -126,6 +126,23 @@ var Storage = {
     });
   },
 
+  hasBuild: function(options) {
+    assert.isObject(options);
+    assert.isString(options.project);
+    assert.isString(options.build);
+
+    return assert.eventually.isTrue(this.hasProject(options.project))
+    .then(function() {
+      return fs.statAsync(path.join(getBuildsPath(options.project), options.build, 'build.json'));
+    })
+    .then(function(stat) {
+      return stat.isFile();
+    })
+    .catch(function(e) {
+      return false;
+    });
+  },
+
   addBuildToSha: function(options) {
     assert.isObject(options);
     assert.isString(options.project);
@@ -184,24 +201,6 @@ var Storage = {
           reject();
         }
       });
-    });
-  },
-
-  hasBuild: function(options) {
-    assert.isObject(options);
-    assert.isString(options.project);
-    assert(this.hasProject(options.project));
-    assert.isString(options.build);
-
-    return assert.eventually.isTrue(this.hasProject(options.project))
-    .then(function() {
-      return fs.statAsync(path.join(getBuildsPath(options.project), options.build, 'build.json'));
-    })
-    .then(function(stat) {
-      return stat.isFile();
-    })
-    .catch(function() {
-      return false;
     });
   },
 
