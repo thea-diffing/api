@@ -41,7 +41,7 @@ describe('module/storage', function() {
 
   describe('#hasProject', function() {
     it('resolves false if project does not exist', function() {
-      assert.eventually.isFalse(storage.hasProject('foo'));
+      return assert.eventually.isFalse(storage.hasProject('foo'));
     });
 
     it('resolves true if project exists', function() {
@@ -49,7 +49,7 @@ describe('module/storage', function() {
         info: 'foo'
       })
       .then(function(result) {
-        assert.eventually.isTrue(storage.hasProject(result.id));
+        return assert.eventually.isTrue(storage.hasProject(result.id));
       });
     });
   });
@@ -159,19 +159,30 @@ describe('module/storage', function() {
         });
       });
 
-      it('should throw if project does not exist');
+      it('should reject if project does not exist', function() {
+        assert.isRejected(storage.startBuild({
+          project: 'project',
+          head: 'head',
+          base: 'base',
+          numBrowsers: 2
+        }));
+      });
     });
 
     describe('with valid args', function() {
       var buildOptions;
 
       beforeEach(function() {
-        buildOptions  = {
-          project: uuid.v4(),
-          head: uuid.v4(),
-          base: uuid.v4(),
-          numBrowsers: 3
-        };
+        return storage.createProject({})
+        .then(function(project) {
+          buildOptions  = {
+            project: project.id,
+            head: uuid.v4(),
+            base: uuid.v4(),
+            numBrowsers: 3
+          };
+        });
+
       });
 
       it('should return an id', function() {
@@ -233,6 +244,15 @@ describe('module/storage', function() {
         });
       });
 
+      it('should throw with no project', function() {
+        assert.throws(function() {
+          return storage.addBuildToSha({
+            build: 'build',
+            sha: 'sha'
+          });
+        });
+      });
+
       it('should throw with only build', function() {
         assert.throws(function() {
           return storage.addBuildToSha({
@@ -248,13 +268,31 @@ describe('module/storage', function() {
           });
         });
       });
+
+      it('should reject with non existent project', function() {
+        assert.isRejected(storage.addBuildToSha({
+          project: 'project',
+          build: 'build',
+          sha: 'sha'
+        }));
+      });
     });
 
     describe('with valid args', function() {
+      var project;
+
+      beforeEach(function() {
+        storage.hasBuild = this.sinon.stub().resolves(true);
+
+        return storage.createProject({})
+        .then(function(result) {
+          project = result.id;
+        });
+      });
+
       it('without existing sha creates a builds.json file', function() {
-        var project = uuid.v4();
-        var build = uuid.v4();
         var sha = uuid.v4();
+        var build = uuid.v4();
 
         return storage.addBuildToSha({
           project: project,
@@ -272,7 +310,6 @@ describe('module/storage', function() {
       });
 
       it('with existing sha adds to builds.json file', function() {
-        var project = uuid.v4();
         var build1 = uuid.v4();
         var build2 = uuid.v4();
         var sha = uuid.v4();
@@ -317,7 +354,7 @@ describe('module/storage', function() {
     });
 
     describe('with valid args', function() {
-      it('should reject if no build', function() {
+      it('should reject if no project', function() {
         assert.isRejected(storage.getBuildsForSha({
           project: 'project',
           sha: 'asfd'
@@ -328,6 +365,9 @@ describe('module/storage', function() {
         var project = uuid.v4();
         var build = uuid.v4();
         var sha = uuid.v4();
+
+        storage.hasProject = this.sinon.stub().resolves(true);
+        storage.hasBuild = this.sinon.stub().resolves(true);
 
         return storage.addBuildToSha({
           project: project,
@@ -414,7 +454,7 @@ describe('module/storage', function() {
       it('should resolve false if no build', function() {
         return storage.createProject(projectOptions)
         .then(function(project) {
-          assert.eventually.isFalse(storage.hasBuild({
+          return assert.eventually.isFalse(storage.hasBuild({
             project: project.id,
             build: 'build'
           }));
@@ -429,7 +469,7 @@ describe('module/storage', function() {
           return storage.startBuild(buildOptions);
         })
         .then(function(data) {
-          assert.eventually.isTrue(storage.hasBuild({
+          return assert.eventually.isTrue(storage.hasBuild({
             project: buildOptions.project,
             build: data.id
           }));

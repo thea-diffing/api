@@ -153,7 +153,7 @@ var Storage = {
       project: options.project,
       build: options.build
     }))
-    .then(function() {
+    .then((function() {
       var build = options.build;
       var sha = options.sha;
 
@@ -178,7 +178,7 @@ var Storage = {
           builds: buildsArray
         });
       });
-    });
+    }).bind(this));
   },
 
   getBuildsForSha: function(options) {
