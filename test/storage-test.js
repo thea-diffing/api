@@ -40,9 +40,18 @@ describe('module/storage', function() {
   });
 
   describe('#hasProject', function() {
-    it('returns false if folder does not exist');
-    it('returns false if file in folder does not exist');
-    it('returns true if json file in project exists');
+    it('resolves false if project does not exist', function() {
+      assert.eventually.isFalse(storage.hasProject('foo'));
+    });
+
+    it('resolves true if project exists', function() {
+      return storage.createProject({
+        info: 'foo'
+      })
+      .then(function(result) {
+        assert.eventually.isTrue(storage.hasProject(result.id));
+      });
+    });
   });
 
   describe('#hasBuild', function() {
