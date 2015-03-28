@@ -109,7 +109,36 @@ describe('module/storage', function() {
   });
 
   describe('#getProjectInfo', function() {
-    it('should return info about the build');
+    describe('with invalid args', function() {
+      it('should throw with non string id', function() {
+        assert.throws(function() {
+          return storage.getProjectInfo({});
+        });
+      });
+    });
+
+    describe('with valid args', function() {
+      it('should reject non existent project', function() {
+        return assert.isRejected(storage.getProjectInfo('project'), /Unknown Project/);
+      });
+
+      it('should return info about the build', function() {
+        var projectOptions = {
+          github: {
+            user: 'user',
+            repository: 'repository'
+          }
+        };
+
+        return storage.createProject(projectOptions)
+        .then(function(project) {
+          return storage.getProjectInfo(project.id);
+        })
+        .then(function(projectInfo) {
+          assert.shallowDeepEqual(projectInfo, projectOptions);
+        });
+      });
+    });
   });
 
   describe('#startBuild', function() {
@@ -282,7 +311,7 @@ describe('module/storage', function() {
       var project;
 
       beforeEach(function() {
-        storage.hasBuild = this.sinon.stub().resolves(true);
+        this.sinon.stub(storage, 'hasBuild').resolves(true);
 
         return storage.createProject({})
         .then(function(result) {
@@ -366,8 +395,8 @@ describe('module/storage', function() {
         var build = uuid.v4();
         var sha = uuid.v4();
 
-        storage.hasProject = this.sinon.stub().resolves(true);
-        storage.hasBuild = this.sinon.stub().resolves(true);
+        this.sinon.stub(storage, 'hasProject').resolves(true);
+        this.sinon.stub(storage, 'hasBuild').resolves(true);
 
         return storage.addBuildToSha({
           project: project,
@@ -406,6 +435,8 @@ describe('module/storage', function() {
       var sha = uuid.v4();
       var expectedSavePath = path.join(storage._getShasPath(project), sha, browser);
 
+      this.sinon.stub(storage, 'hasProject').resolves(true);
+
       return storage.saveImages({
         project: project,
         sha: sha,
@@ -429,20 +460,28 @@ describe('module/storage', function() {
     describe('with invalid args', function() {
       it('should throw with non string id', function() {
         assert.throws(function() {
-          return storage.hasBuild(4);
+          return storage.hasBuild(4)
+          .then(function(err) {
+            console.error(err);
+          });
         });
       });
     });
 
     describe('with valid args', function() {
-      var projectOptions = {
-      };
+      var projectOptions;
+      var buildOptions;
 
-      var buildOptions = {
-        head: 'head',
-        base: 'base',
-        numBrowsers: 3
-      };
+      beforeEach(function() {
+        projectOptions = {
+        };
+
+        buildOptions = {
+          head: 'head',
+          base: 'base',
+          numBrowsers: 3
+        };
+      });
 
       it('should resolve false if project does not exist', function() {
         return assert.eventually.isFalse(storage.hasBuild({
@@ -519,14 +558,14 @@ describe('module/storage', function() {
         return assert.isRejected(storage.getBuildInfo({
           project: 'project',
           id: 'foo'
-        }), /Unknown Build/);
+        }));
       });
 
       it('should reject non existent build', function() {
         return storage.createProject(projectSettings)
         .then(function(project) {
           return assert.isRejected(storage.getBuildInfo({
-            project: project,
+            project: project.id,
             id: 'foo'
           }), /Unknown Build/);
         });
@@ -543,27 +582,27 @@ describe('module/storage', function() {
 
         return storage.createProject(projectSettings)
         .then(function(project) {
-          buildOptions.project = project;
+          buildOptions.project = project.id;
 
-          return storage.startBuild(buildOptions)
-          .then(function(data) {
-            buildId = data.id;
-          })
-          .then(function() {
-            return storage.getBuildInfo({
-              project: project,
-              id: buildId
-            });
-          })
-          .then(function(data) {
-            assert.isObject(data);
-            assert.isString(data.id);
-            assert.equal(data.status, 'pending');
-            assert.isUndefined(data.project);
-
-            delete buildOptions.project;
-            assert.shallowDeepEqual(data, buildOptions);
+          return storage.startBuild(buildOptions);
+        })
+        .then(function(data) {
+          buildId = data.id;
+        })
+        .then(function() {
+          return storage.getBuildInfo({
+            project: buildOptions.project,
+            id: buildId
           });
+        })
+        .then(function(data) {
+          assert.isObject(data);
+          assert.isString(data.id);
+          assert.equal(data.status, 'pending');
+          assert.isUndefined(data.project);
+
+          delete buildOptions.project;
+          assert.shallowDeepEqual(data, buildOptions);
         });
       });
     });
@@ -576,7 +615,7 @@ describe('module/storage', function() {
     beforeEach(function() {
       return storage.createProject({})
       .then(function(project) {
-        projectId = project;
+        projectId = project.id;
       })
       .then(function() {
         var buildOptions = {
@@ -668,6 +707,8 @@ describe('module/storage', function() {
     var dirPath;
 
     beforeEach(function() {
+      this.sinon.stub(storage, 'hasProject').resolves(true);
+
       project = uuid.v4();
       sha = uuid.v4();
       dirPath = path.join(storage._getShasPath(project), sha);
@@ -747,6 +788,8 @@ describe('module/storage', function() {
           readFiles: readFilesStub
         }
       });
+
+      this.sinon.stub(storage, 'hasProject').resolves(true);
     });
 
     it('should fulfill', function() {
@@ -810,9 +853,10 @@ describe('module/storage', function() {
 
   describe('#getImage', function() {
     it('calls getImageFromPath', function() {
-      storage._getImageFromPath = this.sinon.stub().resolves();
+      this.sinon.stub(storage, 'hasProject').resolves(true);
+      this.sinon.stub(storage, '_getImageFromPath').resolves();
 
-      storage.getImage({
+      return storage.getImage({
         project: 'project',
         sha: 'sha',
         browser: 'browser',
@@ -826,9 +870,10 @@ describe('module/storage', function() {
 
   describe('#getDff', function() {
     it('calls getImageFromPath', function() {
-      storage._getImageFromPath = this.sinon.stub().resolves();
+      this.sinon.stub(storage, 'hasBuild').resolves(true);
+      this.sinon.stub(storage, '_getImageFromPath').resolves();
 
-      storage.getDiff({
+      return storage.getDiff({
         project: 'project',
         build: 'build',
         browser: 'browser',
@@ -851,6 +896,8 @@ describe('module/storage', function() {
         imageName: 'navbar.png',
         imageData: TarHelper.createImage().getImage()
       };
+
+      this.sinon.stub(storage, 'hasBuild').resolves(true);
     });
 
     it('should save a file', function() {

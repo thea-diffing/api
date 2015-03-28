@@ -79,7 +79,14 @@ var Storage = {
   },
 
   getProjectInfo: function(id) {
+    assert.isString(id);
 
+    return assert.eventually.isTrue(this.hasProject(id), 'Unknown Project')
+    .then(function() {
+      var buildFile = path.join(getProjectPath(id), 'project.json');
+
+      return fs.readJSONAsync(buildFile);
+    });
   },
 
   startBuild: function(options) {
@@ -216,10 +223,10 @@ var Storage = {
     .then(function() {
       var buildFile = path.join(getBuildsPath(options.project), options.id, 'build.json');
 
-      return fs.readJSONAsync(buildFile)
-      .catch(function() {
-        throw Error('Unknown Build');
-      });
+      return fs.readJSONAsync(buildFile);
+    })
+    .catch(function() {
+      throw Error('Unknown Build');
     });
   },
 
