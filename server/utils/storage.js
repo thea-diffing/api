@@ -49,12 +49,12 @@ var Storage = {
 
     var guid = uuid.v4();
     var projectFile = path.join(getProjectPath(guid), 'project.json');
-    options.id = guid;
+    options.project = guid;
 
     return fs.outputJSONAsync(projectFile, options)
     .then(function() {
       return {
-        id: guid
+        project: guid
       };
     });
   },
@@ -78,12 +78,12 @@ var Storage = {
     });
   },
 
-  getProjectInfo: function(id) {
-    assert.isString(id);
+  getProjectInfo: function(project) {
+    assert.isString(project);
 
-    return assert.eventually.isTrue(this.hasProject(id), 'Unknown Project')
+    return assert.eventually.isTrue(this.hasProject(project), 'Unknown Project')
     .then(function() {
-      var buildFile = path.join(getProjectPath(id), 'project.json');
+      var buildFile = path.join(getProjectPath(project), 'project.json');
 
       return fs.readJSONAsync(buildFile);
     });
@@ -105,7 +105,7 @@ var Storage = {
       var buildFile = path.join(getBuildsPath(options.project), guid, 'build.json');
 
       return fs.outputJSONAsync(buildFile, {
-        id: guid,
+        build: guid,
         head: options.head,
         base: options.base,
         numBrowsers: options.numBrowsers,
@@ -128,7 +128,7 @@ var Storage = {
     }).bind(this))
     .then(function() {
       return {
-        id: guid
+        build: guid
       };
     });
   },
@@ -214,14 +214,14 @@ var Storage = {
   getBuildInfo: function(options) {
     assert.isObject(options);
     assert.isString(options.project);
-    assert.isString(options.id);
+    assert.isString(options.build);
 
     return assert.eventually.isTrue(this.hasBuild({
       project: options.project,
-      build: options.id
+      build: options.build
     }))
     .then(function() {
-      var buildFile = path.join(getBuildsPath(options.project), options.id, 'build.json');
+      var buildFile = path.join(getBuildsPath(options.project), options.build, 'build.json');
 
       return fs.readJSONAsync(buildFile);
     })
@@ -233,7 +233,7 @@ var Storage = {
   updateBuildInfo: function(options) {
     assert.isObject(options);
     assert.isString(options.project);
-    assert.isString(options.id);
+    assert.isString(options.build);
     assert.include(['success', 'failed'], options.status);
 
     if (options.diff) {
@@ -242,11 +242,11 @@ var Storage = {
 
     var status = options.status;
     var diff = options.diff;
-    var buildFile = path.join(getBuildsPath(options.project), options.id, 'build.json');
+    var buildFile = path.join(getBuildsPath(options.project), options.build, 'build.json');
 
     return assert.eventually.isTrue(this.hasBuild({
       project: options.project,
-      build: options.id
+      build: options.build
     }))
     .then(function() {
       return fs.readJSONAsync(buildFile);

@@ -49,7 +49,7 @@ describe('module/storage', function() {
         info: 'foo'
       })
       .then(function(result) {
-        return assert.eventually.isTrue(storage.hasProject(result.id));
+        return assert.eventually.isTrue(storage.hasProject(result.project));
       });
     });
   });
@@ -84,7 +84,7 @@ describe('module/storage', function() {
         return storage.createProject(options)
         .then(function(result) {
           assert.isObject(result);
-          assert.isString(result.id);
+          assert.isString(result.project);
         });
       });
 
@@ -94,14 +94,14 @@ describe('module/storage', function() {
         return storage.createProject(options)
         .then(function(data) {
           result = data;
-          var dir = storage._getProjectPath(data.id);
+          var dir = storage._getProjectPath(data.project);
           var file = path.join(dir, 'project.json');
           return fs.readJSONAsync(file);
         })
         .then(function(data) {
           assert.isObject(data);
-          assert.isString(data.id);
-          assert.equal(result.id, data.id);
+          assert.isString(data.project);
+          assert.equal(result.project, data.project);
           assert.shallowDeepEqual(data, options);
         });
       });
@@ -131,8 +131,8 @@ describe('module/storage', function() {
         };
 
         return storage.createProject(projectOptions)
-        .then(function(project) {
-          return storage.getProjectInfo(project.id);
+        .then(function(result) {
+          return storage.getProjectInfo(result.project);
         })
         .then(function(projectInfo) {
           assert.shallowDeepEqual(projectInfo, projectOptions);
@@ -205,7 +205,7 @@ describe('module/storage', function() {
         return storage.createProject({})
         .then(function(project) {
           buildOptions  = {
-            project: project.id,
+            project: project.project,
             head: uuid.v4(),
             base: uuid.v4(),
             numBrowsers: 3
@@ -218,7 +218,7 @@ describe('module/storage', function() {
         return storage.startBuild(buildOptions)
         .then(function(data) {
           assert.isObject(data);
-          assert.isString(data.id);
+          assert.isString(data.build);
         });
       });
 
@@ -227,7 +227,7 @@ describe('module/storage', function() {
 
         return storage.startBuild(buildOptions)
         .then(function(data) {
-          dir = path.join(storage._getBuildsPath(buildOptions.project), data.id);
+          dir = path.join(storage._getBuildsPath(buildOptions.project), data.build);
         })
         .then(function() {
           var file = path.join(dir, 'build.json');
@@ -235,7 +235,7 @@ describe('module/storage', function() {
         })
         .then(function(data) {
           assert.isObject(data);
-          assert.isString(data.id);
+          assert.isString(data.build);
           assert.equal(data.status, 'pending');
           assert.isUndefined(data.project);
 
@@ -251,13 +251,13 @@ describe('module/storage', function() {
         .then(function(build) {
           assert.calledWith(spy, {
             project: buildOptions.project,
-            build: build.id,
+            build: build.build,
             sha: buildOptions.head
           });
 
           assert.calledWith(spy, {
             project: buildOptions.project,
-            build: build.id,
+            build: build.build,
             sha: buildOptions.base
           });
         });
@@ -315,7 +315,7 @@ describe('module/storage', function() {
 
         return storage.createProject({})
         .then(function(result) {
-          project = result.id;
+          project = result.project;
         });
       });
 
@@ -494,7 +494,7 @@ describe('module/storage', function() {
         return storage.createProject(projectOptions)
         .then(function(project) {
           return assert.eventually.isFalse(storage.hasBuild({
-            project: project.id,
+            project: project.project,
             build: 'build'
           }));
         });
@@ -503,14 +503,14 @@ describe('module/storage', function() {
       it('should resolve true if build exists', function() {
         return storage.createProject(projectOptions)
         .then(function(project) {
-          buildOptions.project = project.id;
+          buildOptions.project = project.project;
 
           return storage.startBuild(buildOptions);
         })
         .then(function(data) {
           return assert.eventually.isTrue(storage.hasBuild({
             project: buildOptions.project,
-            build: data.id
+            build: data.build
           }));
         });
       });
@@ -518,13 +518,13 @@ describe('module/storage', function() {
       it('should resolve false if called with different id than startBuild', function() {
         return storage.createProject(projectOptions)
         .then(function(project) {
-          buildOptions.project = project.id;
+          buildOptions.project = project.project;
 
           return storage.startBuild(buildOptions)
           .then(function(data) {
             return storage.hasBuild({
               project: buildOptions.project,
-              build: data.id + '_'
+              build: data.build + '_'
             });
           })
           .then(function(status) {
@@ -541,7 +541,7 @@ describe('module/storage', function() {
         assert.throws(function() {
           return storage.getBuildInfo({
             project: 'project',
-            id: 4
+            build: 4
           });
         });
       });
@@ -557,7 +557,7 @@ describe('module/storage', function() {
       it('should reject non existent project', function() {
         return assert.isRejected(storage.getBuildInfo({
           project: 'project',
-          id: 'foo'
+          build: 'foo'
         }));
       });
 
@@ -565,8 +565,8 @@ describe('module/storage', function() {
         return storage.createProject(projectSettings)
         .then(function(project) {
           return assert.isRejected(storage.getBuildInfo({
-            project: project.id,
-            id: 'foo'
+            project: project.project,
+            build: 'foo'
           }), /Unknown Build/);
         });
       });
@@ -582,22 +582,22 @@ describe('module/storage', function() {
 
         return storage.createProject(projectSettings)
         .then(function(project) {
-          buildOptions.project = project.id;
+          buildOptions.project = project.project;
 
           return storage.startBuild(buildOptions);
         })
         .then(function(data) {
-          buildId = data.id;
+          buildId = data.build;
         })
         .then(function() {
           return storage.getBuildInfo({
             project: buildOptions.project,
-            id: buildId
+            build: buildId
           });
         })
         .then(function(data) {
           assert.isObject(data);
-          assert.isString(data.id);
+          assert.isString(data.build);
           assert.equal(data.status, 'pending');
           assert.isUndefined(data.project);
 
@@ -615,7 +615,7 @@ describe('module/storage', function() {
     beforeEach(function() {
       return storage.createProject({})
       .then(function(project) {
-        projectId = project.id;
+        projectId = project.project;
       })
       .then(function() {
         var buildOptions = {
@@ -628,7 +628,7 @@ describe('module/storage', function() {
         return storage.startBuild(buildOptions);
       })
       .then(function(data) {
-        buildId = data.id;
+        buildId = data.build;
       });
     });
 
@@ -636,7 +636,7 @@ describe('module/storage', function() {
       beforeEach(function() {
         return storage.updateBuildInfo({
           project: projectId,
-          id: buildId,
+          build: buildId,
           status: 'success'
         });
       });
@@ -644,7 +644,7 @@ describe('module/storage', function() {
       it('should write success', function() {
         return storage.getBuildInfo({
           project: projectId,
-          id: buildId
+          build: buildId
         })
         .then(function(buildInfo) {
           assert.equal(buildInfo.status, 'success');
@@ -654,7 +654,7 @@ describe('module/storage', function() {
       it('should not have a diff', function() {
         return storage.getBuildInfo({
           project: projectId,
-          id: buildId
+          build: buildId
         })
         .then(function(buildInfo) {
           assert.isUndefined(buildInfo.diff);
@@ -668,7 +668,7 @@ describe('module/storage', function() {
       beforeEach(function() {
         newBuildInfo = {
           project: projectId,
-          id: buildId,
+          build: buildId,
           status: 'failed',
           diff: {
             Chrome: ['image1.png,', 'image2.png'],
@@ -682,7 +682,7 @@ describe('module/storage', function() {
       it('should write failure', function() {
         return storage.getBuildInfo({
           project: projectId,
-          id: buildId
+          build: buildId
         })
         .then(function(buildInfo) {
           assert.equal(buildInfo.status, 'failed');
@@ -692,7 +692,7 @@ describe('module/storage', function() {
       it('should have a diff', function() {
         return storage.getBuildInfo({
           project: projectId,
-          id: buildId
+          build: buildId
         })
         .then(function(buildInfo) {
           assert.deepEqual(buildInfo.diff, newBuildInfo.diff);
