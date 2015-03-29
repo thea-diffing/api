@@ -6,6 +6,8 @@ var request = require('supertest-as-promised');
 require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
 
+var githubStub = require('./fixtures/asyncGithubMock');
+
 describe('routes', function() {
   var apiStub;
   var api;
@@ -30,7 +32,8 @@ describe('routes', function() {
 
     var spy = this.sinon.spy(apiStub, 'startBuild');
     var app = proxyquire('../server/app', {
-      './controllers/api': apiStub
+      './controllers/api': apiStub,
+      './asyncGithub': githubStub
     });
     api = request(app);
 
@@ -42,7 +45,10 @@ describe('routes', function() {
   });
 
   it('/unrecognized should return 404', function() {
-    var app = require('../server/app');
+    var app = proxyquire('../server/app', {
+      './asyncGithub': githubStub
+    });
+
     var api = request(app);
 
     return api.get('/foo')
