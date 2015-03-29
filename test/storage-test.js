@@ -854,7 +854,7 @@ describe('module/storage', function() {
   describe('#getImage', function() {
     it('calls getImageFromPath', function() {
       this.sinon.stub(storage, 'hasProject').resolves(true);
-      this.sinon.stub(storage, '_getImageFromPath').resolves();
+      storage._getImageFromPath = this.sinon.stub().resolves();
 
       return storage.getImage({
         project: 'project',
@@ -871,7 +871,7 @@ describe('module/storage', function() {
   describe('#getDff', function() {
     it('calls getImageFromPath', function() {
       this.sinon.stub(storage, 'hasBuild').resolves(true);
-      this.sinon.stub(storage, '_getImageFromPath').resolves();
+      storage._getImageFromPath = this.sinon.stub().resolves();
 
       return storage.getDiff({
         project: 'project',
