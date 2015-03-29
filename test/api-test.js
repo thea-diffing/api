@@ -37,13 +37,87 @@ describe('module/api', function() {
     api = request(app);
   });
 
+  describe('#createProject', function() {
+    beforeEach(function() {
+      instance = api.post('/api/createProject');
+    });
+
+    describe('with invalid params', function() {
+      it('should fail when not given any params', function() {
+        return instance
+          .expect(400)
+          .expect(function(data) {
+            var body = data.body;
+
+            assert.equal(body.status, 'failure');
+            assert.equal(body.message, 'invalid arguments');
+          });
+      });
+
+      it('should fail when not given recognized dvcs', function() {
+        return instance.send({
+          service: {
+            user: 'user',
+            repository: 'repo'
+          }
+        })
+        .expect(400)
+        .expect(function(data) {
+          var body = data.body;
+
+          assert.equal(body.status, 'failure');
+          assert.equal(body.message, 'unsupported dvcs');
+        });
+      });
+    });
+
+    describe('with valid and supported dvcs', function() {
+      var projectOptions;
+
+      beforeEach(function() {
+        projectOptions = {
+          github: {
+            user: 'user',
+            repository: 'repo'
+          }
+        };
+
+        storageStub.createProject = this.sinon.stub().resolves({
+          id: 'project'
+        });
+      });
+
+      it('should return 200', function() {
+        return instance.send(projectOptions)
+        .expect(200);
+      });
+
+      it('should call storage.createProject', function() {
+        return instance.send(projectOptions)
+        .expect(function(result) {
+          assert.calledWithExactly(storageStub.createProject, projectOptions);
+        });
+      });
+
+      it('should return project id', function() {
+        return instance.send(projectOptions)
+        .expect(function(result) {
+          var body = result.body;
+
+          assert.equal(body.status, 'success');
+          assert.isString(body.project);
+        });
+      });
+    });
+  });
+
   describe('#startBuild', function() {
     beforeEach(function() {
       instance = api.post('/api/startBuild');
     });
 
     describe('with invalid params', function() {
-      it('should return 500', function() {
+      it('should return 400', function() {
         return instance.expect(400);
       });
 

@@ -22,7 +22,39 @@ function Api() {}
 
 Api.prototype = {
   createProject: function(req, res) {
+    var params = req.body;
 
+    var dvcs = Object.keys(params);
+
+    if (dvcs.length === 0) {
+      res.status(400).json({
+        status: 'failure',
+        message: 'invalid arguments'
+      });
+      return;
+    }
+
+    if (dvcs.indexOf('github') === -1) {
+      res.status(400).json({
+        status: 'failure',
+        message: 'unsupported dvcs'
+      });
+      return;
+    }
+
+    storage.createProject(params)
+    .then(function(result) {
+      res.status(200).json({
+        status: 'success',
+        project: result.id
+      });
+    })
+    .catch(function() {
+      res.status(500).json({
+        status: 'failure',
+        message: 'error starting build'
+      });
+    });
   },
 
   startBuild: function(req, res) {
