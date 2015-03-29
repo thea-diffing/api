@@ -5,6 +5,7 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var storage = require('../utils/storage');
 var actions = require('../actions');
+var githubUtils = require('../utils/github');
 
 function serveImage(imagePromise, res) {
   imagePromise
@@ -20,14 +21,51 @@ function serveImage(imagePromise, res) {
 function Api() {}
 
 Api.prototype = {
+  createProject: function(req, res) {
+    var params = req.body;
+
+    var dvcs = Object.keys(params);
+
+    if (dvcs.length === 0) {
+      res.status(400).json({
+        status: 'failure',
+        message: 'invalid arguments'
+      });
+      return;
+    }
+
+    if (dvcs.indexOf('github') === -1) {
+      res.status(400).json({
+        status: 'failure',
+        message: 'unsupported dvcs'
+      });
+      return;
+    }
+
+    storage.createProject(params)
+    .then(function(result) {
+      res.status(200).json({
+        status: 'success',
+        project: result.id
+      });
+    })
+    .catch(function() {
+      res.status(500).json({
+        status: 'failure',
+        message: 'error starting build'
+      });
+    });
+  },
+
   startBuild: function(req, res) {
     var params = req.body;
 
+    var project = params.project;
     var head = params.head;
     var base = params.base;
     var numBrowsers = params.numBrowsers;
 
-    if (!head || !base || !numBrowsers) {
+    if (!project || !head || !base || !numBrowsers) {
       res.status(400).json({
         status: 'failure',
         message: 'invalid arguments'
@@ -36,14 +74,21 @@ Api.prototype = {
     }
 
     storage.startBuild({
+      project: project,
       head: head,
       base: base,
       numBrowsers: numBrowsers
     })
     .then(function(result) {
-      res.status(200).json({
-        status: 'success',
-        build: result.id
+      return githubUtils.setStatus({
+        sha: head,
+        state: 'pending'
+      })
+      .then(function() {
+        res.status(200).json({
+          status: 'success',
+          build: result.id
+        });
       });
     })
     .catch(function() {
@@ -57,19 +102,21 @@ Api.prototype = {
   upload: function(req, res) {
     var params = req.body;
 
+    var project;
     var sha;
     var browser;
     var files;
     var images;
 
     try {
+      project = params.project;
       sha = params.sha;
       browser = params.browser;
       files = req.files;
       images = files.images;
     }
     finally {
-      if (!sha || !browser || !files || !images) {
+      if (!project || !sha || !browser || !files || !images) {
         res.status(400).json({
           status: 'failure',
           message: 'invalid arguments'
@@ -80,6 +127,7 @@ Api.prototype = {
 
     // TODO: validate the structure of the tar file
     storage.saveImages({
+      project: project,
       sha: sha,
       browser: browser,
       tarPath: images.path
@@ -102,9 +150,10 @@ Api.prototype = {
   },
 
   getBuild: function(req, res) {
+    var project = req.body.project;
     var buildId = req.body.id;
 
-    if (!buildId) {
+    if (!project || !buildId) {
       res.status(400).json({
         status: 'failure',
         message: 'invalid arguments'
@@ -112,10 +161,16 @@ Api.prototype = {
       return;
     }
 
-    storage.hasBuild(buildId)
+    storage.hasBuild({
+      project: project,
+      build: buildId
+    })
     .then(function(exists) {
       if (exists) {
-        return storage.getBuildInfo(buildId)
+        return storage.getBuildInfo({
+          project: project,
+          build: buildId
+        })
         .then(function(info) {
           res.status(200).json(info);
         });
@@ -137,6 +192,7 @@ Api.prototype = {
     var params = req.params;
 
     var getImagePromise = storage.getImage({
+      project: params.project,
       sha: params.sha,
       browser: params.browser,
       image: params.file
@@ -149,6 +205,7 @@ Api.prototype = {
     var params = req.params;
 
     var getDiffPromise = storage.getDiff({
+      project: params.project,
       build: params.build,
       browser: params.browser,
       image: params.file

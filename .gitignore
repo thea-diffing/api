@@ -6,3 +6,4 @@ data/
 coverage/
 uploads/
 npm-debug.log
+.env

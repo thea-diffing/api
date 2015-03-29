@@ -96,7 +96,7 @@ var TarHelper = {
 
   getFilesInTar: function(fileName) {
     var guid = uuid.v4();
-    var tmp = path.join(__dirname, '/tmp');
+    var tmp = path.join(__dirname, 'tmp');
     var folder = path.join(tmp, guid);
 
     return fs.ensureDirAsync(folder)

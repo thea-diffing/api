@@ -5,6 +5,7 @@ var Bluebird = require('bluebird');
 require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
 var TarHelper = require('../server/utils/tarHelper');
+var githubStub = require('./fixtures/asyncGithubMock');
 
 describe('module/checkBuild', function() {
   var storageStub = {};
@@ -13,19 +14,18 @@ describe('module/checkBuild', function() {
 
   beforeEach(function() {
     storageStub = {
-      '@noCallThru': true
+      '@noCallThru': true,
+      getBuildInfo: this.sinon.stub().resolves({
+        head: 'head',
+        base: 'base',
+        numBrowsers: 2,
+        status: 'pending'
+      })
     };
 
     differStub = {
       '@noCallThru': true
     };
-
-    storageStub.getBuildInfo = this.sinon.stub()
-    .resolves({
-      head: 'head',
-      base: 'base',
-      numBrowsers: 2
-    });
 
     var dispatcherStub = {
       '@noCallThru': true,
@@ -33,6 +33,7 @@ describe('module/checkBuild', function() {
     };
 
     checkBuild = proxyquire('../server/checkBuild', {
+      './asyncGithub': githubStub,
       './utils/storage': storageStub,
       './utils/differ': differStub,
       './dispatcher': dispatcherStub
@@ -85,7 +86,7 @@ describe('module/checkBuild', function() {
 
   describe('#diffBuild', function() {
     beforeEach(function() {
-      storageStub.updateBuildInfo = this.sinon.stub();
+      storageStub.updateBuildInfo = this.sinon.stub().resolves();
     });
 
     describe('with completed build', function() {
@@ -96,8 +97,7 @@ describe('module/checkBuild', function() {
         .withArgs('head')
         .resolves(['Chrome', 'Firefox']);
 
-        diffCommonBrowsersStub = this.sinon.stub()
-        .resolves({});
+        diffCommonBrowsersStub = this.sinon.stub().resolves({});
 
         checkBuild._diffCommonBrowsers = diffCommonBrowsersStub;
       });
@@ -646,7 +646,6 @@ describe('module/checkBuild', function() {
           });
         });
       });
-
     });
   });
 });
