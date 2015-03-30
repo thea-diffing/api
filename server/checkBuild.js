@@ -5,8 +5,7 @@ var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
 var differ = require('./utils/differ');
-var constants = require('./constants');;
-
+var constants = require('./constants');
 var githubUtils = require('./utils/github');
 
 /*

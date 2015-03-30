@@ -1,11 +1,14 @@
 'use strict';
 
 var Bluebird = require('bluebird');
+var assert = require('chai').assert;
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var storage = require('../utils/storage');
 var actions = require('../actions');
 var githubUtils = require('../utils/github');
+
+var configuration;
 
 function serveImage(imagePromise, res) {
   imagePromise
@@ -18,7 +21,11 @@ function serveImage(imagePromise, res) {
   });
 }
 
-function Api() {}
+function Api(config) {
+  // assert.isObject(config);
+
+  configuration = config;
+}
 
 Api.prototype = {
   createProject: function(req, res) {
@@ -215,4 +222,4 @@ Api.prototype = {
   }
 };
 
-module.exports = new Api();
+module.exports = Api;
