@@ -45,8 +45,8 @@
   },
   "scripts": {
     "start": "grunt serve",
-    "test": "NODE_ENV=test mocha --color",
-    "travis": "NODE_ENV=test istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
-    "appveyor": "set NODE_ENV=test&& mocha --color"
+    "test": "mocha --color",
+    "travis": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
+    "appveyor": "mocha --color"
   }
 }
