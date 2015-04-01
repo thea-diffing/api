@@ -1,7 +1,8 @@
 'use strict';
 
-var path = require('path');
+process.env.NODE_ENV = 'test';
 
+var path = require('path');
 var chai = require('chai');
 chai.use(require('chai-as-promised'));
 chai.use(require('chai-shallow-deep-equal'));
