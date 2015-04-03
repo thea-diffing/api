@@ -43,6 +43,10 @@ App.prototype = {
 
     require('./checkBuild');
 
+    var ServiceListener = require('./serviceListener');
+    var serviceListener = new ServiceListener(config);
+    serviceListener.register();
+
     if (instance.get('env') !== 'production') {
       setErrorHandler();
     }

@@ -31,9 +31,9 @@ Api.prototype = {
   createProject: function(req, res) {
     var params = req.body;
 
-    var dvcs = Object.keys(params);
+    var service = params.service;
 
-    if (dvcs.length === 0) {
+    if (service === undefined || service.name === undefined) {
       res.status(400).json({
         status: 'failure',
         message: 'invalid arguments'
@@ -41,7 +41,7 @@ Api.prototype = {
       return;
     }
 
-    if (dvcs.indexOf('github') === -1) {
+    if (service.name !== 'github') {
       res.status(400).json({
         status: 'failure',
         message: 'unsupported dvcs'

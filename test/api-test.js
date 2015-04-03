@@ -27,10 +27,16 @@ describe('module/api', function() {
       diffSha: this.sinon.spy()
     };
 
+    function serviceListenerStub() {}
+
+    serviceListenerStub['@noCallThru'] = true;
+    serviceListenerStub.prototype.register = function() {};
+
     var App = proxyquire('../server/app', {
       '../utils/storage': storageStub,
       '../actions': actionsStub,
-      './asyncGithub': githubStub
+      './asyncGithub': githubStub,
+      './serviceListener': serviceListenerStub
     });
 
     var app = new App();
@@ -61,8 +67,11 @@ describe('module/api', function() {
       it('should fail when not given recognized dvcs', function() {
         return instance.send({
           service: {
-            user: 'user',
-            repository: 'repo'
+            name: 'bad',
+            options: {
+              user: 'user',
+              repository: 'repo'
+            }
           }
         })
         .expect(400)
@@ -80,9 +89,12 @@ describe('module/api', function() {
 
       beforeEach(function() {
         projectOptions = {
-          github: {
-            user: 'user',
-            repository: 'repo'
+          service: {
+            name: 'github',
+            options: {
+              user: 'user',
+              repository: 'repo'
+            }
           }
         };
 
@@ -98,7 +110,7 @@ describe('module/api', function() {
 
       it('should call storage.createProject', function() {
         return instance.send(projectOptions)
-        .expect(function(result) {
+        .expect(function() {
           assert.calledWithExactly(storageStub.createProject, projectOptions);
         });
       });
