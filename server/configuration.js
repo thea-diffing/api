@@ -2,30 +2,31 @@
 
 var merge = require('merge');
 
-var config = {
+var defaults = {
   ip: '0.0.0.0',
   port: 8999,
-  services: []
+  service: undefined
 };
 
 function Configuration() {
+  this._config = merge(true, defaults);
 }
 
 Configuration.prototype = {
   set: function(newConfig) {
-    merge(config, newConfig);
+    this._config = merge(true, this._config, newConfig);
   },
 
-  getServices: function() {
-    return config.services;
+  getService: function() {
+    return this._config.service;
   },
 
   getPort: function() {
-    return config.port;
+    return this._config.port;
   },
 
   getIp: function() {
-    return config.ip;
+    return this._config.ip;
   }
 
 };
