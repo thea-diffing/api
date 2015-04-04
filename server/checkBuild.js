@@ -8,6 +8,7 @@ var differ = require('./utils/differ');
 var constants = require('./constants');
 
 // var githubUtils = require('./utils/github');
+var config;
 
 /*
 payload.sha string
@@ -285,14 +286,20 @@ function diffImage(options) {
   });
 }
 
-dispatcher.on(constants.diffSha, diffSha);
+function CheckBuild(newConfig) {
+  config = newConfig;
+}
+
+CheckBuild.prototype = {
+  register: function() {
+    dispatcher.on(constants.diffSha, diffSha);
+  }
+};
 
 if (process.env.NODE_ENV === 'test') {
-  var visible = {
-    _diffSha: diffSha
-  };
+  CheckBuild.prototype._diffSha = diffSha;
 
-  Object.defineProperty(visible, '_diffBuild', {
+  Object.defineProperty(CheckBuild.prototype, '_diffBuild', {
     get: function() {
       return diffBuild;
     },
@@ -302,7 +309,7 @@ if (process.env.NODE_ENV === 'test') {
     }
   });
 
-  Object.defineProperty(visible, '_diffCommonBrowsers', {
+  Object.defineProperty(CheckBuild.prototype, '_diffCommonBrowsers', {
     get: function() {
       return diffCommonBrowsers;
     },
@@ -312,23 +319,25 @@ if (process.env.NODE_ENV === 'test') {
     }
   });
 
-  Object.defineProperty(visible, '_diffBrowser', {
+  Object.defineProperty(CheckBuild.prototype, '_diffBrowser', {
     get: function() {
       return diffBrowser;
     },
+
     set: function(newFunc) {
       diffBrowser = newFunc;
     }
   });
 
-  Object.defineProperty(visible, '_diffImage', {
+  Object.defineProperty(CheckBuild.prototype, '_diffImage', {
     get: function() {
       return diffImage;
     },
+
     set: function(newFunc) {
       diffImage = newFunc;
     }
   });
-
-  module.exports = visible;
 }
+
+module.exports = CheckBuild;

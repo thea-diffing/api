@@ -5,12 +5,17 @@ var Bluebird = require('bluebird');
 require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
 var TarHelper = require('../server/utils/tarHelper');
+var Configuration = require('../server/configuration');
+
 var githubStub = require('./fixtures/asyncGithubMock');
 
 describe('module/checkBuild', function() {
-  var storageStub = {};
-  var differStub = {};
+  var dispatcherStub;
+  var storageStub;
+  var differStub;
+
   var checkBuild;
+  var config;
 
   beforeEach(function() {
     storageStub = {
@@ -27,16 +32,28 @@ describe('module/checkBuild', function() {
       '@noCallThru': true
     };
 
-    var dispatcherStub = {
+    dispatcherStub = {
       '@noCallThru': true,
       on: this.sinon.spy()
     };
 
-    checkBuild = proxyquire('../server/checkBuild', {
+    var CheckBuild = proxyquire('../server/checkBuild', {
       './asyncGithub': githubStub,
       './utils/storage': storageStub,
       './utils/differ': differStub,
       './dispatcher': dispatcherStub
+    });
+
+    config = new Configuration();
+    checkBuild = new CheckBuild(config);
+  });
+
+  describe('#register', function() {
+    it('should call dispatcher.on', function() {
+      var constants = require('../server/constants');
+      checkBuild.register();
+
+      assert.calledWith(dispatcherStub.on, constants.diffSha, checkBuild._diffSha);
     });
   });
 

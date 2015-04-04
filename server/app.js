@@ -41,7 +41,9 @@ App.prototype = {
       api: new Api(config)
     });
 
-    require('./checkBuild');
+    var CheckBuild = require('./checkBuild');
+    var checkBuild = new CheckBuild(config);
+    checkBuild.register();
 
     var ServiceListener = require('./serviceListener');
     var serviceListener = new ServiceListener(config);

@@ -32,11 +32,17 @@ describe('module/api', function() {
     serviceListenerStub['@noCallThru'] = true;
     serviceListenerStub.prototype.register = function() {};
 
+    function checkBuildStub() {}
+
+    checkBuildStub['@noCallThru'] = true;
+    checkBuildStub.prototype.register = function() {};
+
     var App = proxyquire('../server/app', {
       '../utils/storage': storageStub,
       '../actions': actionsStub,
       './asyncGithub': githubStub,
-      './serviceListener': serviceListenerStub
+      './serviceListener': serviceListenerStub,
+      './checkBuild': checkBuildStub
     });
 
     var app = new App();
