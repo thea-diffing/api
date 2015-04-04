@@ -7,7 +7,6 @@ var proxyquire = require('proxyquire');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var TarHelper = require('../server/utils/tarHelper');
-var githubStub = require('./fixtures/asyncGithubMock');
 
 describe('module/api', function() {
   var storageStub;
@@ -24,7 +23,8 @@ describe('module/api', function() {
     actionsStub = {
       '@noCallThru': true,
       '@global': true,
-      diffSha: this.sinon.spy()
+      diffSha: this.sinon.spy(),
+      setBuildStatus: this.sinon.spy()
     };
 
     function serviceListenerStub() {}
@@ -40,7 +40,6 @@ describe('module/api', function() {
     var App = proxyquire('../server/app', {
       '../utils/storage': storageStub,
       '../actions': actionsStub,
-      './asyncGithub': githubStub,
       './serviceListener': serviceListenerStub,
       './checkBuild': checkBuildStub
     });
@@ -186,6 +185,19 @@ describe('module/api', function() {
 
           assert.equal(body.status, 'success');
           assert.isString(body.build);
+        });
+      });
+
+      it('should call actions.setBuildStatus', function() {
+        return instance.send(params)
+        .expect(function() {
+          assert.calledOnce(actionsStub.setBuildStatus
+            .withArgs({
+              project: 'project',
+              sha: 'head',
+              status: 'pending'
+            })
+          );
         });
       });
     });

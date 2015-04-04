@@ -51,41 +51,6 @@ GithubUtils.prototype = {
       commit_id: options.sha,
       body: options.comment
     });
-  },
-
-  /*
-  buildInfo.id string
-  buildInfo.data.head string
-  buildInfo.data.base string
-  buildInfo.data.numBrowsers number
-  diffBrowsers object
-  */
-  generateMarkdownMessage: function(buildInfo, diffBrowsers) {
-    var browsers = Object.keys(diffBrowsers);
-
-    var lines = ['Diffs found in ' + browsers.length + ' browser(s): ' + browsers.join(', ')];
-
-    var browserGroups = browsers.map(function(browser) {
-      var imagesPaths = diffBrowsers[browser].map(function(image) {
-        return 'http://visualdiff.ngrok.com/api/diff/' + buildInfo.id + '/' + browser + '/' + image;
-      })
-      .map(function(url) {
-        return '![' + url + '](' + url + ')';
-      });
-
-      var browserString = [
-        '<h3>' + browser + '</h3>'
-      ]
-      .concat(imagesPaths);
-
-      return browserString.join('\n');
-
-    }).join('\n\n');
-
-    lines = lines.concat(browserGroups);
-
-    var body = lines.join('\n');
-    return body;
   }
 };
 

@@ -7,8 +7,6 @@ require('sinon-as-promised')(Bluebird);
 var TarHelper = require('../server/utils/tarHelper');
 var Configuration = require('../server/configuration');
 
-var githubStub = require('./fixtures/asyncGithubMock');
-
 describe('module/checkBuild', function() {
   var dispatcherStub;
   var storageStub;
@@ -40,11 +38,11 @@ describe('module/checkBuild', function() {
 
     actionsStub = {
       '@noCallThru': true,
-      setBuildStatus: this.sinon.spy()
+      setBuildStatus: this.sinon.spy(),
+      addComment: this.sinon.spy()
     };
 
     var CheckBuild = proxyquire('../server/checkBuild', {
-      './asyncGithub': githubStub,
       './utils/storage': storageStub,
       './utils/differ': differStub,
       './dispatcher': dispatcherStub,

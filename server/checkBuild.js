@@ -8,7 +8,6 @@ var differ = require('./utils/differ');
 var constants = require('./constants');
 var actions = require('./actions');
 
-// var githubUtils = require('./utils/github');
 var config;
 
 /*
@@ -83,12 +82,12 @@ function diffBuild(options) {
               });
             })
             .then(function() {
-
-              // var message = githubUtils.generateMarkdownMessage(buildInfo, result);
-              // return githubUtils.addComment({
-              //   sha: buildInfo.head,
-              //   body: message
-              // });
+              var message = generateMarkdownMessage(buildInfo, result);
+              actions.addComment({
+                project: project,
+                sha: buildInfo.head,
+                body: message
+              });
             });
           } else {
             return storage.updateBuildInfo({
@@ -285,6 +284,34 @@ function diffImage(options) {
       }
     });
   });
+}
+
+function generateMarkdownMessage(buildInfo, diffBrowsers) {
+  var browsers = Object.keys(diffBrowsers);
+
+  var lines = ['Diffs found in ' + browsers.length + ' browser(s): ' + browsers.join(', ')];
+
+  var browserGroups = browsers.map(function(browser) {
+    var imagesPaths = diffBrowsers[browser].map(function(image) {
+      return 'http://visualdiff.ngrok.com/api/diff/' + buildInfo.project + '/' + buildInfo.id + '/' + browser + '/' + image;
+    })
+    .map(function(url) {
+      return '![' + url + '](' + url + ')';
+    });
+
+    var browserString = [
+      '<h3>' + browser + '</h3>'
+    ]
+    .concat(imagesPaths);
+
+    return browserString.join('\n');
+
+  }).join('\n\n');
+
+  lines = lines.concat(browserGroups);
+
+  var body = lines.join('\n');
+  return body;
 }
 
 function CheckBuild(newConfig) {

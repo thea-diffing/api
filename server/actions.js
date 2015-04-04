@@ -27,6 +27,19 @@ var Actions = {
       sha: options.sha,
       status: options.status
     });
+  },
+
+  addComment: function(options) {
+    assert.isObject(options);
+    assert.isString(options.project);
+    assert.isString(options.sha);
+    assert.isString(options.body);
+
+    dispatcher.emit(constants.SERVICE_ADD_COMMENT, {
+      project: options.project,
+      sha: options.sha,
+      body: options.body
+    });
   }
 };
 
