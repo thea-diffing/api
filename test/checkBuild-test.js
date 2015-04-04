@@ -43,7 +43,9 @@ describe('module/checkBuild', function() {
   describe('#diffSha', function() {
     describe('with invalid payload', function() {
       it('should throw', function() {
-        return assert.isRejected(checkBuild._diffSha());
+        assert.throws(function() {
+          checkBuild._diffSha();
+        });
       });
     });
 
@@ -51,6 +53,7 @@ describe('module/checkBuild', function() {
       storageStub.getBuildsForSha = this.sinon.stub().withArgs('whee').resolves([]);
 
       return checkBuild._diffSha({
+        project: 'project',
         sha: 'whee'
       })
       .then(function() {
@@ -60,25 +63,32 @@ describe('module/checkBuild', function() {
 
     it('calls diffBuild for builds from getBuildsForSha', function() {
       storageStub.getBuildsForSha = this.sinon.stub()
-      .withArgs('whee')
+      .withArgs({
+        project: 'project',
+        sha: 'sha'
+      })
       .resolves(['a', 'b', 'c']);
 
       checkBuild._diffBuild = this.sinon.stub().resolves();
 
       return checkBuild._diffSha({
-        sha: 'whee'
+        project: 'project',
+        sha: 'sha'
       })
       .then(function() {
         assert.calledWith(checkBuild._diffBuild, {
-          id: 'a'
+          project: 'project',
+          build: 'a'
         });
 
         assert.calledWith(checkBuild._diffBuild, {
-          id: 'b'
+          project: 'project',
+          build: 'b'
         });
 
         assert.calledWith(checkBuild._diffBuild, {
-          id: 'c'
+          project: 'project',
+          build: 'c'
         });
       });
     });
@@ -94,7 +104,10 @@ describe('module/checkBuild', function() {
 
       beforeEach(function() {
         storageStub.getBrowsersForSha = this.sinon.stub()
-        .withArgs('head')
+        .withArgs({
+          project: 'project',
+          sha: 'head'
+        })
         .resolves(['Chrome', 'Firefox']);
 
         diffCommonBrowsersStub = this.sinon.stub().resolves({});
@@ -104,10 +117,12 @@ describe('module/checkBuild', function() {
 
       it('should call diffCommonBrowsers', function() {
         return checkBuild._diffBuild({
-          id: 'build'
+          project: 'project',
+          build: 'build'
         })
         .then(function() {
           assert.calledWithExactly(diffCommonBrowsersStub, {
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base'
@@ -125,6 +140,7 @@ describe('module/checkBuild', function() {
           };
 
           diffCommonBrowsersStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base'
@@ -132,11 +148,14 @@ describe('module/checkBuild', function() {
           .resolves(diff);
 
           return checkBuild._diffBuild({
-            id: 'build'
+            project: 'project',
+            build: 'build'
           })
           .then(function() {
             assert.calledOnce(storageStub.updateBuildInfo
-              .withArgs('build', {
+              .withArgs({
+                project: 'project',
+                build: 'build',
                 status: 'failed',
                 diff: diff
               })
@@ -148,6 +167,7 @@ describe('module/checkBuild', function() {
       describe('without diffs', function() {
         it('should write to build file success with no diffs', function() {
           diffCommonBrowsersStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base'
@@ -155,11 +175,14 @@ describe('module/checkBuild', function() {
           .resolves({});
 
           return checkBuild._diffBuild({
-            id: 'build'
+            project: 'project',
+            build: 'build'
           })
           .then(function() {
             assert.calledOnce(storageStub.updateBuildInfo
-              .withArgs('build', {
+              .withArgs({
+                project: 'project',
+                build: 'build',
                 status: 'success'
               })
             );
@@ -171,13 +194,17 @@ describe('module/checkBuild', function() {
     describe('with non-completed build', function() {
       beforeEach(function() {
         storageStub.getBrowsersForSha = this.sinon.stub()
-        .withArgs('head')
+        .withArgs({
+          project: 'project',
+          sha: 'head'
+        })
         .resolves(['Chrome']);
       });
 
       it('should not throw', function() {
         return assert.isFulfilled(checkBuild._diffBuild({
-          id: 'head'
+          project: 'project',
+          build: 'build'
         }));
       });
 
@@ -186,7 +213,8 @@ describe('module/checkBuild', function() {
         checkBuild._diffCommonBrowsers = spy;
 
         return checkBuild._diffBuild({
-          id: 'head'
+          project: 'project',
+          build: 'build'
         })
         .then(function() {
           assert.callCount(spy, 0);
@@ -211,12 +239,14 @@ describe('module/checkBuild', function() {
 
       it('calls diffBrowser for both browsers', function() {
         return checkBuild._diffCommonBrowsers({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base'
         })
         .then(function() {
           assert.calledOnce(diffBrowserStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -224,6 +254,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.calledOnce(diffBrowserStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -234,6 +265,7 @@ describe('module/checkBuild', function() {
 
       it('resolves with browsers with diffs', function() {
         diffBrowserStub.withArgs({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base',
@@ -242,6 +274,7 @@ describe('module/checkBuild', function() {
         .resolves(['image1.png', 'image2.png']);
 
         return assert.becomes(checkBuild._diffCommonBrowsers({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base'
@@ -257,23 +290,31 @@ describe('module/checkBuild', function() {
     describe('for build with different browsers with overlap', function() {
       beforeEach(function() {
         var stub = this.sinon.stub();
-        stub.withArgs('head')
-          .resolves(['Chrome', 'Firefox']);
+        stub.withArgs({
+          project: 'project',
+          sha: 'head'
+        })
+        .resolves(['Chrome', 'Firefox']);
 
-        stub.withArgs('base')
-          .resolves(['Internet Explorer', 'Chrome']);
+        stub.withArgs({
+          project: 'project',
+          sha: 'base'
+        })
+        .resolves(['Internet Explorer', 'Chrome']);
 
         storageStub.getBrowsersForSha = stub;
       });
 
       it('calls diffBrowser for only common browser', function() {
         return checkBuild._diffCommonBrowsers({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base'
         })
         .then(function() {
           assert.calledOnce(diffBrowserStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -281,6 +322,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.notCalled(diffBrowserStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -288,6 +330,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.notCalled(diffBrowserStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -300,17 +343,24 @@ describe('module/checkBuild', function() {
     describe('for build with different browsers with no overlap', function() {
       beforeEach(function() {
         var stub = this.sinon.stub();
-        stub.withArgs('head')
-          .resolves(['Safari', 'Firefox']);
+        stub.withArgs({
+          project: 'project',
+          sha: 'head'
+        })
+        .resolves(['Safari', 'Firefox']);
 
-        stub.withArgs('base')
-          .resolves(['Internet Explorer', 'Chrome']);
+        stub.withArgs({
+          project: 'project',
+          sha: 'base'
+        })
+        .resolves(['Internet Explorer', 'Chrome']);
 
         storageStub.getBrowsersForSha = stub;
       });
 
       it('calls diffBrowser for only common browser', function() {
         return checkBuild._diffCommonBrowsers({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base'
@@ -322,6 +372,7 @@ describe('module/checkBuild', function() {
 
       it('resolves with no browsers', function() {
         return assert.becomes(checkBuild._diffCommonBrowsers({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base'
@@ -348,6 +399,7 @@ describe('module/checkBuild', function() {
 
       it('calls diffImage for both images', function() {
         return checkBuild._diffBrowser({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base',
@@ -355,6 +407,7 @@ describe('module/checkBuild', function() {
         })
         .then(function() {
           assert.calledOnce(diffImageStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -363,6 +416,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.calledOnce(diffImageStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -374,6 +428,7 @@ describe('module/checkBuild', function() {
 
       it('resolves with images that differ', function() {
         diffImageStub.withArgs({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base',
@@ -385,6 +440,7 @@ describe('module/checkBuild', function() {
         });
 
         return assert.becomes(checkBuild._diffBrowser({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base',
@@ -399,12 +455,14 @@ describe('module/checkBuild', function() {
       beforeEach(function() {
         var stub = this.sinon.stub();
         stub.withArgs({
+          project: 'project',
           sha: 'head',
           browser: 'Chrome'
         })
         .resolves(['image1.png', 'image2.png']);
 
         stub.withArgs({
+          project: 'project',
           sha: 'base',
           browser: 'Chrome'
         })
@@ -415,6 +473,7 @@ describe('module/checkBuild', function() {
 
       it('calls diffImage for only common images', function() {
         return checkBuild._diffBrowser({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base',
@@ -422,6 +481,7 @@ describe('module/checkBuild', function() {
         })
         .then(function() {
           assert.calledOnce(diffImageStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -430,6 +490,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.notCalled(diffImageStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -438,6 +499,7 @@ describe('module/checkBuild', function() {
           }));
 
           assert.notCalled(diffImageStub.withArgs({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -452,12 +514,14 @@ describe('module/checkBuild', function() {
       beforeEach(function() {
         var stub = this.sinon.stub();
         stub.withArgs({
+          project: 'project',
           sha: 'head',
           browser: 'Chrome'
         })
         .resolves(['image1.png', 'image2.png']);
 
         stub.withArgs({
+          project: 'project',
           sha: 'base',
           browser: 'Chrome'
         })
@@ -468,6 +532,7 @@ describe('module/checkBuild', function() {
 
       it('does not call diffImage', function() {
         return checkBuild._diffBrowser({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base',
@@ -480,6 +545,7 @@ describe('module/checkBuild', function() {
 
       it('resolves with no images', function() {
         return assert.becomes(checkBuild._diffBrowser({
+          project: 'project',
           build: 'build',
           head: 'head',
           base: 'base',
@@ -495,6 +561,7 @@ describe('module/checkBuild', function() {
 
     beforeEach(function() {
       options = {
+        project: 'project',
         build: 'build',
         head: 'head',
         base: 'base',
@@ -518,6 +585,7 @@ describe('module/checkBuild', function() {
       .then(function() {
         assert.calledOnce(storageStub.getImage
           .withArgs({
+            project: options.project,
             sha: options.head,
             browser: options.browser,
             image: options.image
@@ -525,6 +593,7 @@ describe('module/checkBuild', function() {
 
         assert.calledOnce(storageStub.getImage
           .withArgs({
+            project: options.project,
             sha: options.base,
             browser: options.browser,
             image: options.image
@@ -537,6 +606,7 @@ describe('module/checkBuild', function() {
       var image2Result = TarHelper.createImage().getImage();
 
       storageStub.getImage.withArgs({
+        project: options.project,
         sha: options.head,
         browser: options.browser,
         image: options.image
@@ -544,6 +614,7 @@ describe('module/checkBuild', function() {
       .resolves(image1Result);
 
       storageStub.getImage.withArgs({
+        project: options.project,
         sha: options.base,
         browser: options.browser,
         image: options.image
@@ -578,6 +649,7 @@ describe('module/checkBuild', function() {
 
         it('calls saveDiffImage', function() {
           return checkBuild._diffImage({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -586,6 +658,7 @@ describe('module/checkBuild', function() {
           })
           .then(function() {
             assert.calledOnce(storageStub.saveDiffImage.withArgs({
+              project: 'project',
               build: 'build',
               browser: 'Chrome',
               imageName: 'navbar.png',
@@ -596,6 +669,7 @@ describe('module/checkBuild', function() {
 
         it('resolves with diff field true', function() {
           return assert.becomes(checkBuild._diffImage({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -618,6 +692,7 @@ describe('module/checkBuild', function() {
 
         it('does not call saveDiffImage', function() {
           return checkBuild._diffImage({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',
@@ -626,6 +701,7 @@ describe('module/checkBuild', function() {
           })
           .then(function() {
             assert.notCalled(storageStub.saveDiffImage.withArgs({
+              project: 'project',
               build: 'build',
               browser: 'Chrome',
               imageName: 'navbar.png',
@@ -636,6 +712,7 @@ describe('module/checkBuild', function() {
 
         it('resolves with diff field false', function() {
           return assert.becomes(checkBuild._diffImage({
+            project: 'project',
             build: 'build',
             head: 'head',
             base: 'base',

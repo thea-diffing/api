@@ -5,9 +5,14 @@ var dispatcher = require('./dispatcher');
 var constants = require('./constants');
 
 var Actions = {
-  diffSha: function(sha) {
+  diffSha: function(options) {
+    assert.isObject(options);
+    assert.isString(options.project);
+    assert.isString(options.sha);
+
     dispatcher.emit(constants.diffSha, {
-      sha: sha
+      project: options.project,
+      sha: options.sha
     });
   },
 

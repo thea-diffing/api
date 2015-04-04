@@ -6,23 +6,26 @@ var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
 var differ = require('./utils/differ');
 var constants = require('./constants');
+
 // var githubUtils = require('./utils/github');
 
 /*
 payload.sha string
 */
-function diffSha(payload) {
-  if (payload === undefined || payload.sha === undefined) {
-    return new Bluebird.reject(new Error('Payload must contain a sha'));
-  }
+function diffSha(options) {
+  assert.isObject(options);
+  assert.isString(options.project);
+  assert.isString(options.sha);
 
-  var sha = payload.sha;
-
-  return storage.getBuildsForSha(sha)
+  return storage.getBuildsForSha({
+    project: options.project,
+    sha: options.sha
+  })
   .then(function(builds) {
     var diffBuildPromises = builds.map(function(build) {
       return diffBuild({
-        id: build
+        project: options.project,
+        build: build
       });
     });
 
@@ -32,41 +35,53 @@ function diffSha(payload) {
 
 function diffBuild(options) {
   assert.isObject(options);
-  assert.isString(options.id);
+  assert.isString(options.project);
+  assert.isString(options.build);
 
-  var buildId = options.id;
+  var project = options.project;
+  var build = options.build;
   var buildInfo;
 
-  return storage.getBuildInfo(buildId)
+  return storage.getBuildInfo({
+    project: project,
+    build: build
+  })
   .then(function(info) {
     buildInfo = info;
 
     if (buildInfo.status === 'pending') {
-      return storage.getBrowsersForSha(info.head)
+      return storage.getBrowsersForSha({
+        project: project,
+        sha: info.head
+      })
       .then(function(browsers) {
         if (browsers.length < buildInfo.numBrowsers) {
           return;
         }
 
         return diffCommonBrowsers({
-          build: buildId,
+          project: project,
+          build: build,
           head: buildInfo.head,
           base: buildInfo.base
         })
         .then(function(result) {
-
           if (Object.keys(result).length > 0) {
-            return storage.updateBuildInfo(buildId, {
+            return storage.updateBuildInfo({
+              project: project,
+              build: build,
               status: 'failed',
               diff: result
             })
             .then(function() {
+
               // return githubUtils.setStatus({
               //   sha: buildInfo.head,
               //   state: 'failure'
               // });
             })
             .then(function() {
+
               // var message = githubUtils.generateMarkdownMessage(buildInfo, result);
               // return githubUtils.addComment({
               //   sha: buildInfo.head,
@@ -74,10 +89,13 @@ function diffBuild(options) {
               // });
             });
           } else {
-            return storage.updateBuildInfo(buildId, {
+            return storage.updateBuildInfo({
+              project: project,
+              build: build,
               status: 'success'
             })
             .then(function() {
+
               // return githubUtils.setStatus({
               //   sha: buildInfo.head,
               //   state: 'success'
@@ -92,17 +110,25 @@ function diffBuild(options) {
 
 function diffCommonBrowsers(options) {
   assert.isObject(options);
+  assert.isString(options.project);
   assert.isString(options.build);
   assert.isString(options.head);
   assert.isString(options.base);
 
+  var project = options.project;
   var build = options.build;
   var head = options.head;
   var base = options.base;
 
   return Bluebird.all([
-    storage.getBrowsersForSha(head),
-    storage.getBrowsersForSha(base)
+    storage.getBrowsersForSha({
+      project: project,
+      sha: head
+    }),
+    storage.getBrowsersForSha({
+      project: project,
+      sha: base
+    })
   ])
   .spread(function(headBrowsers, baseBrowsers) {
     var commonBrowsers = headBrowsers.filter(function(n) {
@@ -111,6 +137,7 @@ function diffCommonBrowsers(options) {
 
     var imagePromises = commonBrowsers.map(function(browser) {
       return diffBrowser({
+        project: project,
         build: build,
         head: head,
         base: base,
@@ -142,11 +169,13 @@ function diffCommonBrowsers(options) {
 
 function diffBrowser(options) {
   assert.isObject(options);
+  assert.isString(options.project);
   assert.isString(options.build);
   assert.isString(options.head);
   assert.isString(options.base);
   assert.isString(options.browser);
 
+  var project = options.project;
   var build = options.build;
   var head = options.head;
   var base = options.base;
@@ -154,10 +183,12 @@ function diffBrowser(options) {
 
   return Bluebird.all([
     storage.getImagesForShaBrowser({
+      project: project,
       sha: head,
       browser: browser
     }),
     storage.getImagesForShaBrowser({
+      project: project,
       sha: base,
       browser: browser
     })
@@ -169,6 +200,7 @@ function diffBrowser(options) {
 
     var imagePromises = commonImages.map(function(image) {
       return diffImage({
+        project: project,
         build: build,
         head: head,
         base: base,
@@ -199,12 +231,14 @@ resolves
 */
 function diffImage(options) {
   assert.isObject(options);
+  assert.isString(options.project);
   assert.isString(options.build);
   assert.isString(options.head);
   assert.isString(options.base);
   assert.isString(options.browser);
   assert.isString(options.image);
 
+  var project = options.project;
   var build = options.build;
   var head = options.head;
   var base = options.base;
@@ -213,11 +247,13 @@ function diffImage(options) {
 
   return Bluebird.all([
     storage.getImage({
+      project: project,
       sha: head,
       browser: browser,
       image: image
     }),
     storage.getImage({
+      project: project,
       sha: base,
       browser: browser,
       image: image
@@ -229,6 +265,7 @@ function diffImage(options) {
 
       if (data.distance > 0) {
         return storage.saveDiffImage({
+          project: project,
           build: build,
           browser: browser,
           imageName: image,
@@ -259,6 +296,7 @@ if (process.env.NODE_ENV === 'test') {
     get: function() {
       return diffBuild;
     },
+
     set: function(newFunc) {
       diffBuild = newFunc;
     }
@@ -268,6 +306,7 @@ if (process.env.NODE_ENV === 'test') {
     get: function() {
       return diffCommonBrowsers;
     },
+
     set: function(newFunc) {
       diffCommonBrowsers = newFunc;
     }

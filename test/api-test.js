@@ -209,12 +209,14 @@ describe('module/api', function() {
 
     describe('valid', function() {
       var sha;
+      var project;
 
       beforeEach(function() {
-        var fileName = path.join(__dirname, 'foo.tar.gz');
-        var project = 'project';
-        var browser = 'Chrome 26';
+        project = 'project';
         sha = 'sha';
+
+        var fileName = path.join(__dirname, 'foo.tar.gz');
+        var browser = 'Chrome 26';
 
         storageStub.saveImages = this.sinon.stub();
 
@@ -255,7 +257,10 @@ describe('module/api', function() {
       it('should call actions.diffSha', function() {
         return instance.expect(function() {
           assert.calledOnce(actionsStub.diffSha);
-          assert.calledWithExactly(actionsStub.diffSha, sha);
+          assert.calledWithExactly(actionsStub.diffSha, {
+            project: project,
+            sha: sha
+          });
         });
       });
 

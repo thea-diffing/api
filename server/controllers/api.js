@@ -151,7 +151,10 @@ Api.prototype = {
       });
     })
     .then(function() {
-      actions.diffSha(sha);
+      actions.diffSha({
+        project: project,
+        sha: sha
+      });
       return fs.removeAsync(images.path);
     });
   },

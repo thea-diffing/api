@@ -236,7 +236,7 @@ var Storage = {
     assert.isString(options.build);
     assert.include(['success', 'failed'], options.status);
 
-    if (options.diff) {
+    if (options.status === 'failed') {
       assert.isObject(options.diff);
     }
 
