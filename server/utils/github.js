@@ -3,8 +3,6 @@
 var assert = require('chai').assert;
 var Github = require('./asyncGithub');
 
-var botToken = process.env.githubToken;
-
 function verifyConfig(config) {
   assert.isObject(config);
   assert.equal(config.name, 'github');
@@ -13,10 +11,13 @@ function verifyConfig(config) {
   assert.isString(config.options.repository);
 }
 
-function GithubUtils() {
+function GithubUtils(options) {
+  assert.isObject(options);
+  assert.isString(options.botToken);
+
   Github.authenticate({
     type: 'oauth',
-    token: botToken
+    token: options.botToken
   });
 }
 
