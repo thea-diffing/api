@@ -104,7 +104,7 @@ describe('module/api', function() {
         };
 
         storageStub.createProject = this.sinon.stub().resolves({
-          id: 'project'
+          project: 'project'
         });
       });
 
@@ -160,44 +160,51 @@ describe('module/api', function() {
         numBrowsers: 2
       };
 
-      beforeEach(function() {
-        storageStub.startBuild = this.sinon.stub();
+      describe('with unknown project', function() {
+        it('should error with message');
+        it('should not call storage.startBuild');
+      });
 
-        storageStub.startBuild.withArgs(this.sinon.match({
-          project: 'project',
-          head: 'head',
-          base: 'base',
-          numBrowsers: 2
-        })).resolves({
-          id: 'buildId'
+      describe('with known project', function() {
+        beforeEach(function() {
+          storageStub.startBuild = this.sinon.stub();
+
+          storageStub.startBuild.withArgs(this.sinon.match({
+            project: 'project',
+            head: 'head',
+            base: 'base',
+            numBrowsers: 2
+          })).resolves({
+            id: 'buildId'
+          });
         });
-      });
 
-      it('should return 200', function() {
-        return instance.send(params)
-        .expect(200);
-      });
-
-      it('should return success and ID', function() {
-        return instance.send(params)
-        .expect(function(data) {
-          var body = data.body;
-
-          assert.equal(body.status, 'success');
-          assert.isString(body.build);
+        it('should return 200', function() {
+          return instance.send(params)
+          .expect(200);
         });
-      });
 
-      it('should call actions.setBuildStatus', function() {
-        return instance.send(params)
-        .expect(function() {
-          assert.calledOnce(actionsStub.setBuildStatus
-            .withArgs({
-              project: 'project',
-              sha: 'head',
-              status: 'pending'
-            })
-          );
+        it('should return success and ID', function() {
+          return instance.send(params)
+          .expect(function(data) {
+            var body = data.body;
+
+            assert.equal(body.status, 'success');
+            assert.isString(body.build);
+          });
+        });
+
+        it('should call actions.setBuildStatus', function() {
+          return instance.send(params)
+          .expect(function() {
+            assert.calledOnce(actionsStub.setBuildStatus
+              .withArgs({
+                project: 'project',
+                sha: 'head',
+                status: 'pending'
+              })
+            );
+          });
         });
       });
     });
@@ -228,24 +235,16 @@ describe('module/api', function() {
     describe('valid', function() {
       var sha;
       var project;
+      var browser;
 
       beforeEach(function() {
         project = 'project';
         sha = 'sha';
 
         var fileName = path.join(__dirname, 'foo.tar.gz');
-        var browser = 'Chrome 26';
+        browser = 'Chrome 26';
 
         storageStub.saveImages = this.sinon.stub();
-
-        storageStub.saveImages.withArgs(
-          this.sinon.match({
-            project: project,
-            sha: sha,
-            browser: browser
-          })
-          .and(this.sinon.match.has('tarPath'))
-        ).resolves();
 
         return TarHelper.createBrowserTar(browser, fileName)
         .then(function() {
@@ -260,38 +259,92 @@ describe('module/api', function() {
         });
       });
 
-      it('should give 200', function() {
-        return instance.expect(200);
-      });
-
-      it('should be success', function() {
-        return instance.expect(function(data) {
-          var body = data.body;
-
-          assert.equal(body.status, 'success');
+      describe('non-existent project', function() {
+        beforeEach(function() {
+          storageStub.hasProject = this.sinon.stub().resolves(false);
         });
-      });
 
-      it('should call actions.diffSha', function() {
-        return instance.expect(function() {
-          assert.calledOnce(actionsStub.diffSha);
-          assert.calledWithExactly(actionsStub.diffSha, {
-            project: project,
-            sha: sha
+        it('should error with message', function() {
+          return instance.expect(400)
+          .expect(function(data) {
+            var body = data.body;
+
+            assert.equal(body.status, 'failure');
+            assert.equal(body.message, 'unknown project');
+          });
+        });
+
+        it('should not call saveImages', function() {
+          return instance.expect(function() {
+            assert.notCalled(storageStub.saveImages);
+          });
+        });
+
+        it('should not call diffSha', function() {
+          return instance.expect(function() {
+            assert.notCalled(actionsStub.diffSha);
           });
         });
       });
 
-      it('should have failure message if storage failed', function() {
-        storageStub.saveImages = this.sinon.stub().rejects();
+      describe('known project', function() {
+        beforeEach(function() {
+          storageStub.hasProject = this.sinon.stub().resolves(true);
 
-        return instance
-        .expect(500)
-        .expect(function(data) {
-          var body = data.body;
+          storageStub.saveImages.withArgs(
+            this.sinon.match({
+              project: project,
+              sha: sha,
+              browser: browser
+            })
+            .and(this.sinon.match.has('tarPath'))
+          ).resolves();
+        });
 
-          assert.equal(body.status, 'failure');
-          assert.equal(body.message, 'failed uploading');
+        it('should give 200', function() {
+          return instance.expect(200);
+        });
+
+        it('should be success', function() {
+          return instance.expect(function(data) {
+            var body = data.body;
+
+            assert.equal(body.status, 'success');
+          });
+        });
+
+        it('should call actions.diffSha', function() {
+          return instance.expect(function() {
+            assert.calledOnce(actionsStub.diffSha);
+            assert.calledWithExactly(actionsStub.diffSha, {
+              project: project,
+              sha: sha
+            });
+          });
+        });
+
+        describe('storage failed', function() {
+          beforeEach(function() {
+            storageStub.saveImages = this.sinon.stub().rejects();
+          });
+
+          it('should have failure message', function() {
+            return instance
+            .expect(500)
+            .expect(function(data) {
+              var body = data.body;
+
+              assert.equal(body.status, 'failure');
+              assert.equal(body.message, 'failed uploading');
+            });
+          });
+
+          it('should not call actions.diffSha', function() {
+            return instance
+            .expect(function() {
+              assert.notCalled(actionsStub.diffSha);
+            });
+          });
         });
       });
     });

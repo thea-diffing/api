@@ -52,7 +52,7 @@ Api.prototype = {
     .then(function(result) {
       res.status(200).json({
         status: 'success',
-        project: result.id
+        project: result.project
       });
     })
     .catch(function() {
@@ -131,30 +131,43 @@ Api.prototype = {
       }
     }
 
-    // TODO: validate the structure of the tar file
-    storage.saveImages({
-      project: project,
-      sha: sha,
-      browser: browser,
-      tarPath: images.path
-    })
-    .then(function() {
-      res.status(200).json({
-        status: 'success'
-      });
-    })
-    .catch(function() {
-      res.status(500).json({
-        status: 'failure',
-        message: 'failed uploading'
-      });
-    })
-    .then(function() {
-      actions.diffSha({
+    storage.hasProject(project)
+    .then(function(projectExists) {
+      if (!projectExists) {
+        res.status(400).json({
+          status: 'failure',
+          message: 'unknown project'
+        });
+
+        return;
+      }
+
+      // TODO: validate the structure of the tar file
+      storage.saveImages({
         project: project,
-        sha: sha
+        sha: sha,
+        browser: browser,
+        tarPath: images.path
+      })
+      .then(function() {
+        res.status(200).json({
+          status: 'success'
+        });
+
+        actions.diffSha({
+          project: project,
+          sha: sha
+        });
+      })
+      .catch(function() {
+        res.status(500).json({
+          status: 'failure',
+          message: 'failed uploading'
+        });
+      })
+      .then(function() {
+        return fs.removeAsync(images.path);
       });
-      return fs.removeAsync(images.path);
     });
   },
 

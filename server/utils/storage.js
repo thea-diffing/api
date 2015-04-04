@@ -1,6 +1,6 @@
 'use strict';
 
-var assert = require('chai').assert;
+var chai = require('chai');
 var Bluebird = require('bluebird');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
@@ -8,6 +8,9 @@ var uuid = require('node-uuid');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var dirHelper = require('./dirHelper');
 var tarHelper = require('./tarHelper');
+
+chai.use(require('chai-as-promised'));
+var assert = chai.assert;
 
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
