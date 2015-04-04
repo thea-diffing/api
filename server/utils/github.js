@@ -5,6 +5,14 @@ var Github = require('./asyncGithub');
 
 var botToken = process.env.githubToken;
 
+function verifyConfig(config) {
+  assert.isObject(config);
+  assert.equal(config.name, 'github');
+  assert.isObject(config.options);
+  assert.isString(config.options.user);
+  assert.isString(config.options.repository);
+}
+
 function GithubUtils() {
   Github.authenticate({
     type: 'oauth',
@@ -14,11 +22,7 @@ function GithubUtils() {
 
 GithubUtils.prototype = {
   setBuildStatus: function(config, options) {
-    assert.isObject(config);
-    assert.equal(config.name, 'github');
-    assert.isObject(config.options);
-    assert.isString(config.options.user);
-    assert.isString(config.options.repository);
+    verifyConfig(config);
 
     assert.isObject(options);
     assert.isString(options.sha);
@@ -33,33 +37,19 @@ GithubUtils.prototype = {
     });
   },
 
-  setStatus: function(options) {
-    var sha = options.sha;
-    var state = options.state;
+  addComment: function(config, options) {
+    verifyConfig(config);
 
-    if (sha === undefined || state === undefined) {
-      throw new Error('sha and state must be defined');
-    }
-
-    return Github.statuses.createAsync({
-      user: 'VisualTesting',
-      repo: 'test-example',
-      sha: sha,
-      state: state,
-      context: 'CI - Visual'
-    });
-  },
-
-  addComment: function(options) {
-    var sha = options.sha;
-    var body = options.body;
+    assert.isObject(options);
+    assert.isString(options.sha);
+    assert.isString(options.comment);
 
     return Github.repos.createCommitCommentAsync({
-      user: 'VisualTesting',
-      repo: 'test-example',
-      sha: sha,
-      commit_id: sha,
-      body: body
+      user: config.options.user,
+      repo: config.options.repository,
+      sha: options.sha,
+      commit_id: options.sha,
+      body: options.comment
     });
   },
 
@@ -69,7 +59,6 @@ GithubUtils.prototype = {
   buildInfo.data.base string
   buildInfo.data.numBrowsers number
   diffBrowsers object
-
   */
   generateMarkdownMessage: function(buildInfo, diffBrowsers) {
     var browsers = Object.keys(diffBrowsers);
