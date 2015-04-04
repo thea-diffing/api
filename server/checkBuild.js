@@ -80,8 +80,7 @@ function diffBuild(options) {
                 sha: buildInfo.head,
                 status: 'failure'
               });
-            })
-            .then(function() {
+
               var message = generateMarkdownMessage(buildInfo, result);
               actions.addComment({
                 project: project,
@@ -364,6 +363,16 @@ if (process.env.NODE_ENV === 'test') {
 
     set: function(newFunc) {
       diffImage = newFunc;
+    }
+  });
+
+  Object.defineProperty(CheckBuild.prototype, '_generateMarkdownMessage', {
+    get: function() {
+      return generateMarkdownMessage;
+    },
+
+    set: function(newFunc) {
+      generateMarkdownMessage = newFunc;
     }
   });
 }

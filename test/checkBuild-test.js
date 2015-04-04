@@ -171,6 +171,8 @@ describe('module/checkBuild', function() {
           })
           .resolves(diff);
 
+          checkBuild._generateMarkdownMessage = this.sinon.stub().returns('message');
+
           return checkBuild._diffBuild({
             project: 'project',
             build: 'build'
@@ -198,7 +200,15 @@ describe('module/checkBuild', function() {
           );
         });
 
-        it('should call actions.addComment');
+        it('should call actions.addComment', function() {
+          assert.calledOnce(actionsStub.addComment
+            .withArgs({
+              project: 'project',
+              sha: 'head',
+              body: 'message'
+            })
+          );
+        });
       });
 
       describe('without diffs', function() {
