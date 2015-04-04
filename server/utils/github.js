@@ -55,4 +55,4 @@ GithubUtils.prototype = {
   }
 };
 
-module.exports = new GithubUtils();
+module.exports = GithubUtils;
