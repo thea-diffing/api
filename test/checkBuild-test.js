@@ -13,6 +13,7 @@ describe('module/checkBuild', function() {
   var dispatcherStub;
   var storageStub;
   var differStub;
+  var actionsStub;
 
   var checkBuild;
   var config;
@@ -37,11 +38,17 @@ describe('module/checkBuild', function() {
       on: this.sinon.spy()
     };
 
+    actionsStub = {
+      '@noCallThru': true,
+      setBuildStatus: this.sinon.spy()
+    };
+
     var CheckBuild = proxyquire('../server/checkBuild', {
       './asyncGithub': githubStub,
       './utils/storage': storageStub,
       './utils/differ': differStub,
-      './dispatcher': dispatcherStub
+      './dispatcher': dispatcherStub,
+      './actions': actionsStub
     });
 
     config = new Configuration();
@@ -148,8 +155,10 @@ describe('module/checkBuild', function() {
       });
 
       describe('with diffs', function() {
-        it('should set build status failed and save diffs', function() {
-          var diff = {
+        var diff;
+
+        beforeEach(function() {
+          diff = {
             Chrome: [
               'image1.png',
               'image2.png'
@@ -167,22 +176,35 @@ describe('module/checkBuild', function() {
           return checkBuild._diffBuild({
             project: 'project',
             build: 'build'
-          })
-          .then(function() {
-            assert.calledOnce(storageStub.updateBuildInfo
-              .withArgs({
-                project: 'project',
-                build: 'build',
-                status: 'failed',
-                diff: diff
-              })
-            );
           });
         });
+
+        it('should set build status failed and save diffs', function() {
+          assert.calledOnce(storageStub.updateBuildInfo
+            .withArgs({
+              project: 'project',
+              build: 'build',
+              status: 'failed',
+              diff: diff
+            })
+          );
+        });
+
+        it('should call actions.setBuildStatus', function() {
+          assert.calledOnce(actionsStub.setBuildStatus
+            .withArgs({
+              project: 'project',
+              sha: 'head',
+              status: 'failure'
+            })
+          );
+        });
+
+        it('should call actions.addComment');
       });
 
       describe('without diffs', function() {
-        it('should write to build file success with no diffs', function() {
+        beforeEach(function() {
           diffCommonBrowsersStub.withArgs({
             project: 'project',
             build: 'build',
@@ -194,16 +216,27 @@ describe('module/checkBuild', function() {
           return checkBuild._diffBuild({
             project: 'project',
             build: 'build'
-          })
-          .then(function() {
-            assert.calledOnce(storageStub.updateBuildInfo
-              .withArgs({
-                project: 'project',
-                build: 'build',
-                status: 'success'
-              })
-            );
           });
+        });
+
+        it('should write to build file success with no diffs', function() {
+          assert.calledOnce(storageStub.updateBuildInfo
+            .withArgs({
+              project: 'project',
+              build: 'build',
+              status: 'success'
+            })
+          );
+        });
+
+        it('should call actions.setBuildStatus', function() {
+          assert.calledOnce(actionsStub.setBuildStatus
+            .withArgs({
+              project: 'project',
+              sha: 'head',
+              status: 'success'
+            })
+          );
         });
       });
     });

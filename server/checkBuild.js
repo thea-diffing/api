@@ -6,6 +6,7 @@ var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
 var differ = require('./utils/differ');
 var constants = require('./constants');
+var actions = require('./actions');
 
 // var githubUtils = require('./utils/github');
 var config;
@@ -75,11 +76,11 @@ function diffBuild(options) {
               diff: result
             })
             .then(function() {
-
-              // return githubUtils.setStatus({
-              //   sha: buildInfo.head,
-              //   state: 'failure'
-              // });
+              actions.setBuildStatus({
+                project: project,
+                sha: buildInfo.head,
+                status: 'failure'
+              });
             })
             .then(function() {
 
@@ -96,11 +97,11 @@ function diffBuild(options) {
               status: 'success'
             })
             .then(function() {
-
-              // return githubUtils.setStatus({
-              //   sha: buildInfo.head,
-              //   state: 'success'
-              // });
+              actions.setBuildStatus({
+                project: project,
+                sha: buildInfo.head,
+                status: 'success'
+              });
             });
           }
         });
