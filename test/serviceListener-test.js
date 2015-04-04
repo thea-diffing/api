@@ -9,6 +9,7 @@ var Configuration = require('../server/configuration');
 
 describe('module/serviceListener', function() {
   var dispatcherStub;
+  var storageStub;
 
   var serviceListener;
   var config;
@@ -19,8 +20,14 @@ describe('module/serviceListener', function() {
       on: this.sinon.spy()
     };
 
+    storageStub = {
+      '@noCallThru': true,
+      '@global': true
+    };
+
     var ServiceListener = proxyquire('../server/serviceListener', {
-      './dispatcher': dispatcherStub
+      './dispatcher': dispatcherStub,
+      './utils/storage': storageStub
     });
 
     config = new Configuration();
@@ -37,14 +44,6 @@ describe('module/serviceListener', function() {
   });
 
   describe('#setBuildStatus', function() {
-    xit('should print', function() {
-      config.set({
-        service: 'github'
-      });
-
-      // serviceListener._setBuildStatus('boop');
-    });
-
     describe('with invalid params', function() {
       it('should throw without project', function() {
         assert.throws(function() {
@@ -85,7 +84,45 @@ describe('module/serviceListener', function() {
     });
 
     describe('with a service', function() {
-      it('should call the service setBuildStatus');
+      it('should call the service setBuildStatus', function() {
+        function FakeService() {
+
+        }
+
+        FakeService.prototype = {
+          setBuildStatus: this.sinon.spy()
+        };
+
+        var fakeService = new FakeService();
+
+        config.set({
+          service: fakeService
+        });
+
+        var projectService = {
+          name: 'github',
+          options: {
+            user: 'VisualTesting',
+            repository: 'test-example'
+          }
+        };
+
+        storageStub.getProjectInfo = this.sinon.stub().resolves({
+          service: projectService
+        });
+
+        return serviceListener._setBuildStatus({
+          project: 'project',
+          sha: 'sha',
+          status: 'success'
+        })
+        .then(function() {
+          assert.calledWithExactly(fakeService.setBuildStatus, projectService, {
+            sha: 'sha',
+            status: 'success'
+          });
+        });
+      });
     });
   });
 });

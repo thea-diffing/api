@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('chai').assert;
 var Github = require('./asyncGithub');
 
 var botToken = process.env.githubToken;
@@ -12,6 +13,26 @@ function GithubUtils() {
 }
 
 GithubUtils.prototype = {
+  setBuildStatus: function(config, options) {
+    assert.isObject(config);
+    assert.equal(config.name, 'github');
+    assert.isObject(config.options);
+    assert.isString(config.options.user);
+    assert.isString(config.options.repository);
+
+    assert.isObject(options);
+    assert.isString(options.sha);
+    assert.isString(options.status);
+
+    return Github.statuses.createAsync({
+      user: config.options.user,
+      repo: config.options.repository,
+      sha: options.sha,
+      state: options.status,
+      context: 'CI - Visual'
+    });
+  },
+
   setStatus: function(options) {
     var sha = options.sha;
     var state = options.state;

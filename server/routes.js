@@ -27,9 +27,10 @@ module.exports = function(options) {
   Example:
 
   service: {
-    Github: {
-      user: 'VisualTesting',
-      repository: 'test-example'
+    name: "github",
+    options: {
+      user: "VisualTesting",
+      repository: "test-example"
     }
   }
 

@@ -12,6 +12,7 @@
     "github": "^0.2.3",
     "grunt-cli": "^0.1.13",
     "grunt-express-server": "~0.4.5",
+    "keymirror": "^0.1.1",
     "load-grunt-tasks": "~3.1.0",
     "merge": "^1.2.0",
     "method-override": "~2.3.1",
@@ -21,7 +22,6 @@
     "node-uuid": "^1.4.2",
     "pngjs-image": "^0.9.3",
     "recursive-readdir": "^1.2.1",
-    "symbol": "^0.2.1",
     "tar.gz": "^0.1.1"
   },
   "devDependencies": {

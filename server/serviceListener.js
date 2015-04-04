@@ -4,6 +4,7 @@ var assert = require('chai').assert;
 var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
 var constants = require('./constants');
+var storage = require('./utils/storage');
 
 var config;
 
@@ -13,9 +14,19 @@ function setBuildStatus(options) {
   assert.isString(options.sha);
   assert.isString(options.status);
 
-  if (config.getService() === undefined) {
+  var service = config.getService();
+
+  if (service === undefined) {
     return Bluebird.resolve();
   }
+
+  return storage.getProjectInfo(options.project)
+  .then(function(info) {
+    return service.setBuildStatus(info.service, {
+      sha: options.sha,
+      status: options.status
+    });
+  });
 }
 
 function ServiceListener(newConfig) {
