@@ -1,12 +1,12 @@
 'use strict';
 
 var Bluebird = require('bluebird');
-var assert = require('chai').assert;
+// var assert = require('chai').assert;
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var storage = require('../utils/storage');
 var actions = require('../actions');
-var githubUtils = require('../utils/github');
+// var githubUtils = require('../utils/github');
 
 var configuration;
 
@@ -87,16 +87,16 @@ Api.prototype = {
       numBrowsers: numBrowsers
     })
     .then(function(result) {
-      return githubUtils.setStatus({
-        sha: head,
-        state: 'pending'
-      })
-      .then(function() {
+      // return githubUtils.setStatus({
+      //   sha: head,
+      //   state: 'pending'
+      // })
+      // .then(function() {
         res.status(200).json({
           status: 'success',
           build: result.id
         });
-      });
+      // });
     })
     .catch(function() {
       res.status(500).json({
