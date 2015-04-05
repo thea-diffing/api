@@ -10,7 +10,6 @@ var Configuration = require('../server/configuration');
 describe('module/checkBuild', function() {
   var dispatcherStub;
   var storageStub;
-  var differStub;
   var actionsStub;
 
   var checkBuild;
@@ -27,10 +26,6 @@ describe('module/checkBuild', function() {
       })
     };
 
-    differStub = {
-      '@noCallThru': true
-    };
-
     dispatcherStub = {
       '@noCallThru': true,
       on: this.sinon.spy()
@@ -44,7 +39,6 @@ describe('module/checkBuild', function() {
 
     var CheckBuild = proxyquire('../server/checkBuild', {
       './utils/storage': storageStub,
-      './utils/differ': differStub,
       './dispatcher': dispatcherStub,
       './actions': actionsStub
     });
@@ -614,6 +608,7 @@ describe('module/checkBuild', function() {
   });
 
   describe('#diffImage', function() {
+    var differStub;
     var generateDiffStub;
     var options;
 
@@ -633,7 +628,12 @@ describe('module/checkBuild', function() {
         width: 200
       });
 
-      differStub.generateDiff = generateDiffStub;
+      differStub = {
+        '@noCallThru': true,
+        generateDiff: generateDiffStub
+      };
+
+      config.getDiffer = this.sinon.stub().returns(differStub);
 
       storageStub.getImage = this.sinon.stub();
     });

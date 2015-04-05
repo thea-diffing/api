@@ -1,6 +1,7 @@
 'use strict';
 
 var Github = require('./server/utils/github');
+var Differ = require('./server/utils/differ');
 
 var service;
 
@@ -14,7 +15,9 @@ function Apply(config) {
   config.set({
     port: 9000,
 
-    service: service
+    service: service,
+
+    differ: Differ
   });
 }
 

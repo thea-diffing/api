@@ -4,7 +4,6 @@ var assert = require('chai').assert;
 var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
 var storage = require('./utils/storage');
-var differ = require('./utils/differ');
 var constants = require('./constants');
 var actions = require('./actions');
 
@@ -264,6 +263,8 @@ function diffImage(options) {
     })
   ])
   .spread(function(headImage, baseImage) {
+    var differ = config.getDiffer();
+
     return differ.generateDiff(headImage, baseImage)
     .then(function(data) {
 
