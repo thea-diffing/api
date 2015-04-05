@@ -28,21 +28,9 @@ function getShasPath(project) {
 }
 
 function getImageFromPath(path) {
-  return new Bluebird(function(resolve, reject) {
-    var domain = require('domain').create();
-    domain.on('error', function(err) {
-      reject(err);
-    });
-
-    domain.run(function() {
-      PNGImage.readImageAsync(path)
-      .then(function(image) {
-        resolve(image.getImage());
-      })
-      .catch(function(err) {
-        reject(err);
-      });
-    });
+  return PNGImage.readImageAsync(path)
+  .then(function(image) {
+    return image.getImage();
   });
 }
 
@@ -63,21 +51,12 @@ var Storage = {
   },
 
   hasProject: function(project) {
-    return new Bluebird(function(resolve) {
-      var domain = require('domain').create();
-      domain.on('error', function() {
-        resolve(false);
-      });
-
-      domain.run(function() {
-        fs.statAsync(path.join(dataPath, project, 'project.json'))
-        .then(function(stat) {
-          resolve(stat.isFile());
-        })
-        .catch(function() {
-          resolve(false);
-        });
-      });
+    return fs.statAsync(path.join(dataPath, project, 'project.json'))
+    .then(function(stat) {
+      return stat.isFile();
+    })
+    .catch(function() {
+      return false;
     });
   },
 
