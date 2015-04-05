@@ -1,6 +1,6 @@
 'use strict';
 
-var assert = require('chai').assert;
+var chai = require('chai');
 var Bluebird = require('bluebird');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
@@ -8,6 +8,9 @@ var uuid = require('node-uuid');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var dirHelper = require('./dirHelper');
 var tarHelper = require('./tarHelper');
+
+chai.use(require('chai-as-promised'));
+var assert = chai.assert;
 
 var root = path.join(__dirname, '..', '..');
 var dataPath = path.join(root, 'data');
@@ -197,15 +200,21 @@ var Storage = {
     .then(function() {
       var sha = options.sha;
 
-      var shaBuildsFile = path.join(getShasPath(options.project), sha, 'builds.json');
+      var shaPath = path.join(getShasPath(options.project), sha);
 
-      return new Bluebird(function(resolve, reject) {
+      return fs.statAsync(shaPath)
+      .then(function(stat) {
+        assert(stat.isDirectory(), 'unknown sha');
+      })
+      .then(function() {
+        var shaBuildsFile = path.join(shaPath, 'builds.json');
+
         try {
           var file = fs.readJSONSync(shaBuildsFile);
-          resolve(file.builds);
+          return file.builds;
         }
         catch(err) {
-          reject();
+          return [];
         }
       });
     });
@@ -236,7 +245,7 @@ var Storage = {
     assert.isString(options.build);
     assert.include(['success', 'failed'], options.status);
 
-    if (options.diff) {
+    if (options.status === 'failed') {
       assert.isObject(options.diff);
     }
 

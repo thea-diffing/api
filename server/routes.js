@@ -19,15 +19,19 @@ module.exports = function(options) {
   Create a new project to hold builds
   POST params:
 
-  DVCS Name: {
-    DVCS Options
+  service: {
+    name: DVCS Name,
+    options: DVCS Options
   }
 
   Example:
 
-  Github: {
-    user: 'VisualTesting',
-    repository: 'test-example'
+  service: {
+    name: "github",
+    options: {
+      user: "VisualTesting",
+      repository: "test-example"
+    }
   }
 
   Response:

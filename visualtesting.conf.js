@@ -2,14 +2,19 @@
 
 var Github = require('./server/utils/github');
 
-function Apply(config) {
+var service;
 
+if (process.env.GITHUB_BOT_TOKEN !== undefined) {
+  service = new Github({
+    botToken: process.env.GITHUB_BOT_TOKEN
+  });
+}
+
+function Apply(config) {
   config.set({
     port: 9000,
 
-    services: [
-      Github
-    ]
+    service: service
   });
 }
 

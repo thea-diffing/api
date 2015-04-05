@@ -2,30 +2,36 @@
 
 var merge = require('merge');
 
-var config = {
+var defaults = {
+  url: 'http://visualdiff.ngrok.com',
   ip: '0.0.0.0',
   port: 8999,
-  services: []
+  service: undefined
 };
 
 function Configuration() {
+  this._config = merge(true, defaults);
 }
 
 Configuration.prototype = {
   set: function(newConfig) {
-    merge(config, newConfig);
+    this._config = merge(true, this._config, newConfig);
   },
 
-  getServices: function() {
-    return config.services;
-  },
-
-  getPort: function() {
-    return config.port;
+  getService: function() {
+    return this._config.service;
   },
 
   getIp: function() {
-    return config.ip;
+    return this._config.ip;
+  },
+
+  getPort: function() {
+    return this._config.port;
+  },
+
+  getUrl: function() {
+    return this._config.host;
   }
 
 };
