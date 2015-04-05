@@ -381,7 +381,7 @@ describe('module/api', function() {
           build: id
         })).resolves(false);
 
-        instance = instance.send({
+        instance = instance.query({
           project: project,
           id: id
         })
@@ -397,7 +397,7 @@ describe('module/api', function() {
 
           storageStub.hasBuild = this.sinon.stub().resolves(false);
 
-          instance = instance.send({
+          instance = instance.query({
             project: project,
             id: id
           });
@@ -429,7 +429,7 @@ describe('module/api', function() {
         storageStub.hasBuild = this.sinon.stub().resolves(true);
 
         instance = api.get('/api/getBuild')
-        .send({
+        .query({
           project: project,
           id: buildId
         });
@@ -442,7 +442,7 @@ describe('module/api', function() {
           build: buildId
         })).resolves();
 
-        return instance.send({
+        return instance.query({
           project: project,
           id: buildId
         })
