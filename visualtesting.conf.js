@@ -4,9 +4,9 @@ var Github = require('./server/utils/github');
 
 var service;
 
-if (process.env.botToken !== undefined) {
+if (process.env.GITHUB_BOT_TOKEN !== undefined) {
   service = new Github({
-    botToken: process.env.botToken
+    botToken: process.env.GITHUB_BOT_TOKEN
   });
 }
 

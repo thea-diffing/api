@@ -200,15 +200,21 @@ var Storage = {
     .then(function() {
       var sha = options.sha;
 
-      var shaBuildsFile = path.join(getShasPath(options.project), sha, 'builds.json');
+      var shaPath = path.join(getShasPath(options.project), sha);
 
-      return new Bluebird(function(resolve, reject) {
+      return fs.statAsync(shaPath)
+      .then(function(stat) {
+        assert(stat.isDirectory(), 'unknown sha');
+      })
+      .then(function() {
+        var shaBuildsFile = path.join(shaPath, 'builds.json');
+
         try {
           var file = fs.readJSONSync(shaBuildsFile);
-          resolve(file.builds);
+          return file.builds;
         }
         catch(err) {
-          reject();
+          return [];
         }
       });
     });

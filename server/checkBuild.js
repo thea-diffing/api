@@ -81,7 +81,11 @@ function diffBuild(options) {
                 status: 'failure'
               });
 
-              var message = generateMarkdownMessage(buildInfo, result);
+              var message = generateMarkdownMessage({
+                project: project,
+                build: build
+              }, result);
+
               actions.addComment({
                 project: project,
                 sha: buildInfo.head,
@@ -286,13 +290,20 @@ function diffImage(options) {
 }
 
 function generateMarkdownMessage(buildInfo, diffBrowsers) {
+  assert.isObject(buildInfo);
+  assert.isString(buildInfo.project);
+  assert.isString(buildInfo.build);
+
+  assert.isObject(diffBrowsers);
+
   var browsers = Object.keys(diffBrowsers);
 
   var lines = ['Diffs found in ' + browsers.length + ' browser(s): ' + browsers.join(', ')];
+  var url = config.getUrl();
 
   var browserGroups = browsers.map(function(browser) {
     var imagesPaths = diffBrowsers[browser].map(function(image) {
-      return 'http://visualdiff.ngrok.com/api/diff/' + buildInfo.project + '/' + buildInfo.id + '/' + browser + '/' + image;
+      return url + '/api/diff/' + buildInfo.project + '/' + buildInfo.build + '/' + browser + '/' + image;
     })
     .map(function(url) {
       return '![' + url + '](' + url + ')';

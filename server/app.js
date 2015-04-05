@@ -55,8 +55,6 @@ App.prototype = {
   },
 
   start: function() {
-    // Start server
-
     var ip = config.getIp();
     var port = config.getPort();
 
