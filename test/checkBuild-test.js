@@ -205,7 +205,7 @@ describe('module/checkBuild', function() {
             .withArgs({
               project: 'project',
               sha: 'head',
-              body: 'message'
+              comment: 'message'
             })
           );
         });
