@@ -2,6 +2,7 @@
 
 var Github = require('./server/utils/github');
 var Differ = require('./server/utils/differ');
+var storage = require('../utils/storage');
 
 var service;
 
@@ -17,7 +18,8 @@ function Apply(config) {
 
     service: service,
 
-    differ: Differ
+    differ: Differ,
+    storage: storage
   });
 }
 

@@ -23,17 +23,16 @@ describe('module/serviceListener', function() {
       on: this.sinon.spy()
     };
 
-    storageStub = {
-      '@noCallThru': true,
-      '@global': true
-    };
+    storageStub = {};
 
     var ServiceListener = proxyquire('../server/serviceListener', {
-      './dispatcher': dispatcherStub,
-      './utils/storage': storageStub
+      './dispatcher': dispatcherStub
     });
 
     config = new Configuration();
+    config.set({
+      storage: storageStub
+    });
     serviceListener = new ServiceListener(config);
 
     function FakeService() {

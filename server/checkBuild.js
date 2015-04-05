@@ -3,11 +3,11 @@
 var assert = require('chai').assert;
 var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
-var storage = require('./utils/storage');
 var constants = require('./constants');
 var actions = require('./actions');
 
 var config;
+var storage;
 
 /*
 payload.sha string
@@ -327,6 +327,8 @@ function generateMarkdownMessage(buildInfo, diffBrowsers) {
 
 function CheckBuild(newConfig) {
   config = newConfig;
+
+  storage = config.getStorage();
 }
 
 CheckBuild.prototype = {

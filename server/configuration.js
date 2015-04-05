@@ -7,7 +7,8 @@ var defaults = {
   ip: '0.0.0.0',
   port: 8999,
   service: undefined,
-  differ: undefined
+  differ: undefined,
+  storage: undefined
 };
 
 function Configuration() {
@@ -16,7 +17,7 @@ function Configuration() {
 
 Configuration.prototype = {
   set: function(newConfig) {
-    this._config = merge(true, this._config, newConfig);
+    merge(this._config, newConfig);
   },
 
   getService: function() {
@@ -37,6 +38,10 @@ Configuration.prototype = {
 
   getDiffer: function() {
     return this._config.differ;
+  },
+
+  getStorage: function() {
+    return this._config.storage;
   }
 };
 

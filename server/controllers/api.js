@@ -4,10 +4,10 @@ var Bluebird = require('bluebird');
 // var assert = require('chai').assert;
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
-var storage = require('../utils/storage');
 var actions = require('../actions');
 
 var configuration;
+var storage;
 
 function serveImage(imagePromise, res) {
   imagePromise
@@ -21,9 +21,9 @@ function serveImage(imagePromise, res) {
 }
 
 function Api(config) {
-  // assert.isObject(config);
-
   configuration = config;
+
+  storage = configuration.getStorage();
 }
 
 Api.prototype = {
