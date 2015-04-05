@@ -172,8 +172,8 @@ Api.prototype = {
   },
 
   getBuild: function(req, res) {
-    var project = req.body.project;
-    var buildId = req.body.id;
+    var project = req.query.project;
+    var buildId = req.query.id;
 
     if (!project || !buildId) {
       res.status(400).json({
