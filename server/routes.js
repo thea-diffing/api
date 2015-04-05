@@ -102,7 +102,7 @@ module.exports = function(options) {
   }
 
   {
-      id: 203,
+      build: 203,
       head: {SHA},
       base: {SHA},
       status: "success" // either "failed", "success"

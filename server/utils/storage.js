@@ -225,11 +225,11 @@ var Storage = {
     assert.include(['success', 'failed'], options.status);
 
     if (options.status === 'failed') {
-      assert.isObject(options.diff);
+      assert.isObject(options.diffs);
     }
 
     var status = options.status;
-    var diff = options.diff;
+    var diffs = options.diffs;
     var buildFile = path.join(getBuildsPath(options.project), options.build, 'build.json');
 
     return assert.eventually.isTrue(this.hasBuild({
@@ -243,9 +243,9 @@ var Storage = {
       data.status = status;
 
       if (status === 'success') {
-        delete data.diff;
+        delete data.diffs;
       } else if (status === 'failed') {
-        data.diff = diff;
+        data.diffs = diffs;
       }
 
       return fs.outputJSONAsync(buildFile, data);

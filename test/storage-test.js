@@ -651,13 +651,13 @@ describe('module/storage', function() {
         });
       });
 
-      it('should not have a diff', function() {
+      it('should not have diffs', function() {
         return storage.getBuildInfo({
           project: projectId,
           build: buildId
         })
         .then(function(buildInfo) {
-          assert.isUndefined(buildInfo.diff);
+          assert.isUndefined(buildInfo.diffs);
         });
       });
     });
@@ -670,7 +670,7 @@ describe('module/storage', function() {
           project: projectId,
           build: buildId,
           status: 'failed',
-          diff: {
+          diffs: {
             Chrome: ['image1.png,', 'image2.png'],
             Firefox: ['image1.png']
           }
@@ -689,13 +689,13 @@ describe('module/storage', function() {
         });
       });
 
-      it('should have a diff', function() {
+      it('should have diffs', function() {
         return storage.getBuildInfo({
           project: projectId,
           build: buildId
         })
         .then(function(buildInfo) {
-          assert.deepEqual(buildInfo.diff, newBuildInfo.diff);
+          assert.deepEqual(buildInfo.diffs, newBuildInfo.diffs);
         });
       });
     });
