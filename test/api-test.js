@@ -175,7 +175,7 @@ describe('module/api', function() {
             base: 'base',
             numBrowsers: 2
           })).resolves({
-            id: 'buildId'
+            build: 'buildId'
           });
         });
 

@@ -94,7 +94,7 @@ Api.prototype = {
 
       res.status(200).json({
         status: 'success',
-        build: result.id
+        build: result.build
       });
     })
     .catch(function() {
