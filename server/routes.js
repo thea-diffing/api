@@ -130,7 +130,8 @@ module.exports = function(options) {
   /*
   Approve a build
   POST Params
-  - id
+  - project string
+  - build string
   Response:
   {
       status: "success"

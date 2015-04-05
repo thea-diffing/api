@@ -207,7 +207,72 @@ Api.prototype = {
   },
 
   confirm: function(req, res) {
-    throw new Error('not implemented');
+    var params = req.body;
+
+    var project = params.project;
+    var build = params.build;
+
+    if (!project || !build) {
+      res.status(400).json({
+        status: 'failure',
+        message: 'invalid arguments'
+      });
+
+      return;
+    }
+
+    storage.hasProject(project)
+    .then(function(projectExists) {
+      if (!projectExists) {
+        res.status(400).json({
+          status: 'failure',
+          message: 'unknown project'
+        });
+
+        return;
+      }
+
+      storage.hasBuild({
+        project: project,
+        build: build
+      })
+      .then(function(buildExists) {
+        if (!buildExists) {
+          res.status(400).json({
+            status: 'failure',
+            message: 'unknown build'
+          });
+
+          return;
+        }
+
+        var info;
+
+        return storage.getBuildInfo({
+          project: project,
+          build: build
+        })
+        .then(function(buildInfo) {
+          buildInfo.status = 'approved';
+          info = buildInfo;
+
+          buildInfo.project = project;
+
+          return storage.updateBuildInfo(buildInfo);
+        })
+        .then(function() {
+          res.status(200).json({
+            status: 'success'
+          });
+
+          actions.setBuildStatus({
+            project: project,
+            sha: info.head,
+            status: 'success'
+          });
+        });
+      });
+    });
   },
 
   getImage: function(req, res) {
