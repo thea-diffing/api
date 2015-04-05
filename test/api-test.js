@@ -517,6 +517,111 @@ describe('module/api', function() {
     });
   });
 
+  describe('#confirm', function() {
+    describe('with unknown project', function() {
+      it('should 400 with message', function() {
+        storageStub.hasProject = this.sinon.stub().resolves(false);
+
+        return api.post('/api/confirm')
+        .send({
+          project: 'project',
+          build: 'build'
+        })
+        .expect(400)
+        .expect(function(data) {
+          var body = data.body;
+          assert.equal(body.status, 'failure');
+          assert.equal(body.message, 'unknown project');
+        });
+      });
+    });
+
+    describe('with unknown build', function() {
+      it('should 400 with message', function() {
+        storageStub.hasProject = this.sinon.stub().resolves(true);
+        storageStub.hasBuild = this.sinon.stub().resolves(false);
+
+        return api.post('/api/confirm')
+        .send({
+          project: 'project',
+          build: 'build'
+        })
+        .expect(400)
+        .expect(function(data) {
+          var body = data.body;
+          assert.equal(body.status, 'failure');
+          assert.equal(body.message, 'unknown build');
+        });
+      });
+    });
+
+    describe('with known project and build', function() {
+      var stub;
+      var buildInfo;
+
+      beforeEach(function() {
+        buildInfo = {
+          project: 'project',
+          head: 'head',
+          status: 'failed',
+          diffs: {
+            'Chrome 28': [
+              'homepage.navbar.700.png',
+              'homepage.navbar.1300.png',
+              'homepage.search.700.png',
+              'homepage.search.1300.png'
+            ],
+            'IE 8': [
+                'homepage.navbar.700.png',
+                'homepage.search.700.png'
+            ]
+          }
+        };
+
+        storageStub.hasProject = this.sinon.stub().resolves(true);
+        storageStub.hasBuild = this.sinon.stub().resolves(true);
+        storageStub.updateBuildInfo = this.sinon.stub().resolves();
+        storageStub.getBuildInfo = this.sinon.stub().resolves(buildInfo);
+
+        instance = api.post('/api/confirm')
+        .send({
+          project: 'project',
+          build: 'build'
+        });
+      });
+
+      it('should be 200 with success', function() {
+        return instance
+        .expect(200)
+        .expect(function(data) {
+          var body = data.body;
+          assert.equal(body.status, 'success');
+        });
+      });
+
+      it('should call storage.updateBuildInfo', function() {
+        return instance.expect(function() {
+          buildInfo.status = 'approved';
+
+          assert.calledOnce(storageStub.updateBuildInfo.withArgs(buildInfo));
+        });
+      });
+
+      it('should call actions.setBuildStatus', function() {
+        return instance
+        .expect(function() {
+          assert.calledOnce(actionsStub.setBuildStatus
+            .withArgs({
+              project: 'project',
+              sha: 'head',
+              status: 'success'
+            })
+          );
+        });
+      });
+    });
+  });
+
   describe('#getImage', function() {
     it('should call getImage', function() {
       storageStub.getImage = this.sinon.stub();

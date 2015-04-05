@@ -222,9 +222,9 @@ var Storage = {
     assert.isObject(options);
     assert.isString(options.project);
     assert.isString(options.build);
-    assert.include(['success', 'failed'], options.status);
+    assert.isString(options.status);
 
-    if (options.status === 'failed') {
+    if (options.diffs) {
       assert.isObject(options.diffs);
     }
 
@@ -241,12 +241,7 @@ var Storage = {
     })
     .then(function(data) {
       data.status = status;
-
-      if (status === 'success') {
-        delete data.diffs;
-      } else if (status === 'failed') {
-        data.diffs = diffs;
-      }
+      data.diffs = diffs;
 
       return fs.outputJSONAsync(buildFile, data);
     });
