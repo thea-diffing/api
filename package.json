@@ -20,7 +20,7 @@
     "multer": "^0.1.8",
     "node-resemble-js": "0.0.4",
     "node-uuid": "^1.4.2",
-    "pngjs-image": "^0.9.3",
+    "pngjs-image": "^0.10.0",
     "recursive-readdir": "^1.2.1",
     "tar.gz": "^0.1.1"
   },
