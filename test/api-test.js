@@ -15,10 +15,7 @@ describe('module/api', function() {
   var instance;
 
   beforeEach(function() {
-    storageStub = {
-      '@noCallThru': true,
-      '@global': true
-    };
+    storageStub = {};
 
     actionsStub = {
       '@noCallThru': true,
@@ -38,7 +35,7 @@ describe('module/api', function() {
     checkBuildStub.prototype.register = function() {};
 
     var App = proxyquire('../server/app', {
-      '../utils/storage': storageStub,
+      // '../utils/storage': storageStub,
       '../actions': actionsStub,
       './serviceListener': serviceListenerStub,
       './checkBuild': checkBuildStub
@@ -47,6 +44,10 @@ describe('module/api', function() {
     var app = new App();
     var Configuration = require('../server/configuration');
     var config = new Configuration();
+    config.set({
+      storage: storageStub
+    });
+
     app.useConfiguration(config);
 
     api = request(app._instance);

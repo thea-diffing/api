@@ -4,8 +4,8 @@ var assert = require('chai').assert;
 var Bluebird = require('bluebird');
 var dispatcher = require('./dispatcher');
 var constants = require('./constants');
-var storage = require('./utils/storage');
 
+var storage;
 var config;
 
 function setBuildStatus(options) {
@@ -52,6 +52,8 @@ function addComment(options) {
 
 function ServiceListener(newConfig) {
   config = newConfig;
+
+  storage = config.getStorage();
 }
 
 ServiceListener.prototype = {

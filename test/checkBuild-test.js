@@ -17,7 +17,6 @@ describe('module/checkBuild', function() {
 
   beforeEach(function() {
     storageStub = {
-      '@noCallThru': true,
       getBuildInfo: this.sinon.stub().resolves({
         head: 'head',
         base: 'base',
@@ -38,12 +37,15 @@ describe('module/checkBuild', function() {
     };
 
     var CheckBuild = proxyquire('../server/checkBuild', {
-      './utils/storage': storageStub,
       './dispatcher': dispatcherStub,
       './actions': actionsStub
     });
 
     config = new Configuration();
+    config.set({
+      storage: storageStub
+    });
+
     checkBuild = new CheckBuild(config);
   });
 
