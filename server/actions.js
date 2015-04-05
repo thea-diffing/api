@@ -33,12 +33,12 @@ var Actions = {
     assert.isObject(options);
     assert.isString(options.project);
     assert.isString(options.sha);
-    assert.isString(options.body);
+    assert.isString(options.comment);
 
     dispatcher.emit(constants.SERVICE_ADD_COMMENT, {
       project: options.project,
       sha: options.sha,
-      body: options.body
+      comment: options.comment
     });
   }
 };

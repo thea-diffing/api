@@ -85,7 +85,7 @@ function diffBuild(options) {
               actions.addComment({
                 project: project,
                 sha: buildInfo.head,
-                body: message
+                comment: message
               });
             });
           } else {
