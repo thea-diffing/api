@@ -28,9 +28,21 @@ function getShasPath(project) {
 }
 
 function getImageFromPath(path) {
-  return PNGImage.readImageAsync(path)
+  return new Bluebird(function(resolve, reject) {
+    var domain = require('domain').create();
+    domain.on('error', function(err) {
+      reject(err);
+    });
+
+    domain.run(function() {
+      PNGImage.readImageAsync(path)
   .then(function(image) {
-    return image.getImage();
+        resolve(image.getImage());
+      })
+      .catch(function(err) {
+        reject(err);
+      });
+    });
   });
 }
 
