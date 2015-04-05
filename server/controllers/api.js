@@ -1,11 +1,13 @@
 'use strict';
 
 var Bluebird = require('bluebird');
+// var assert = require('chai').assert;
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var storage = require('../utils/storage');
 var actions = require('../actions');
-var githubUtils = require('../utils/github');
+
+var configuration;
 
 function serveImage(imagePromise, res) {
   imagePromise
@@ -18,15 +20,19 @@ function serveImage(imagePromise, res) {
   });
 }
 
-function Api() {}
+function Api(config) {
+  // assert.isObject(config);
+
+  configuration = config;
+}
 
 Api.prototype = {
   createProject: function(req, res) {
     var params = req.body;
 
-    var dvcs = Object.keys(params);
+    var service = params.service;
 
-    if (dvcs.length === 0) {
+    if (service === undefined || service.name === undefined) {
       res.status(400).json({
         status: 'failure',
         message: 'invalid arguments'
@@ -34,7 +40,7 @@ Api.prototype = {
       return;
     }
 
-    if (dvcs.indexOf('github') === -1) {
+    if (service.name !== 'github') {
       res.status(400).json({
         status: 'failure',
         message: 'unsupported dvcs'
@@ -46,7 +52,7 @@ Api.prototype = {
     .then(function(result) {
       res.status(200).json({
         status: 'success',
-        project: result.id
+        project: result.project
       });
     })
     .catch(function() {
@@ -80,15 +86,15 @@ Api.prototype = {
       numBrowsers: numBrowsers
     })
     .then(function(result) {
-      return githubUtils.setStatus({
+      actions.setBuildStatus({
+        project: project,
         sha: head,
-        state: 'pending'
-      })
-      .then(function() {
-        res.status(200).json({
-          status: 'success',
-          build: result.id
-        });
+        status: 'pending'
+      });
+
+      res.status(200).json({
+        status: 'success',
+        build: result.build
       });
     })
     .catch(function() {
@@ -125,27 +131,43 @@ Api.prototype = {
       }
     }
 
-    // TODO: validate the structure of the tar file
-    storage.saveImages({
-      project: project,
-      sha: sha,
-      browser: browser,
-      tarPath: images.path
-    })
-    .then(function() {
-      res.status(200).json({
-        status: 'success'
+    storage.hasProject(project)
+    .then(function(projectExists) {
+      if (!projectExists) {
+        res.status(400).json({
+          status: 'failure',
+          message: 'unknown project'
+        });
+
+        return;
+      }
+
+      // TODO: validate the structure of the tar file
+      storage.saveImages({
+        project: project,
+        sha: sha,
+        browser: browser,
+        tarPath: images.path
+      })
+      .then(function() {
+        res.status(200).json({
+          status: 'success'
+        });
+
+        actions.diffSha({
+          project: project,
+          sha: sha
+        });
+      })
+      .catch(function() {
+        res.status(500).json({
+          status: 'failure',
+          message: 'failed uploading'
+        });
+      })
+      .then(function() {
+        return fs.removeAsync(images.path);
       });
-    })
-    .catch(function() {
-      res.status(500).json({
-        status: 'failure',
-        message: 'failed uploading'
-      });
-    })
-    .then(function() {
-      actions.diffSha(sha);
-      return fs.removeAsync(images.path);
     });
   },
 
@@ -215,4 +237,4 @@ Api.prototype = {
   }
 };
 
-module.exports = new Api();
+module.exports = Api;

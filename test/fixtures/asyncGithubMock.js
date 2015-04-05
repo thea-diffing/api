@@ -7,6 +7,7 @@ require('sinon-as-promised')(Bluebird);
 var AsyncGithubMock = {
   '@global': true,
   authenticate: function() {},
+
   statuses: {
     createAsync: sinon.stub().resolves()
   },

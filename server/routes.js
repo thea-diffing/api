@@ -1,26 +1,37 @@
 'use strict';
 
-var api = require('./controllers/api');
+var assert = require('chai').assert;
 
 /**
  * Application routes
  */
-module.exports = function(app) {
+module.exports = function(options) {
+  assert.isObject(options);
+  assert.isDefined(options.app);
+  assert.isDefined(options.api);
+
+  var app = options.app;
+  var api = options.api;
+
   // Server API Routes
 
   /*
   Create a new project to hold builds
   POST params:
 
-  DVCS Name: {
-    DVCS Options
+  service: {
+    name: DVCS Name,
+    options: DVCS Options
   }
 
   Example:
 
-  Github: {
-    user: 'VisualTesting',
-    repository: 'test-example'
+  service: {
+    name: "github",
+    options: {
+      user: "VisualTesting",
+      repository: "test-example"
+    }
   }
 
   Response:

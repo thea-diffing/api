@@ -37,11 +37,14 @@
   "requireCapitalizedConstructors": true,
   "requireCurlyBraces": ["if", "else", "for", "while", "do", "try", "catch"],
   "requireDotNotation": true,
+  "requireFunctionDeclarations": true,
   "requireLineFeedAtFileEnd": true,
   "requireSpaceBeforeBinaryOperators": ["?", "+", "/", "*", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
   "requireSpaceAfterBinaryOperators": ["?", "+", "/", "*", ":", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
   "requireSpaceAfterKeywords": ["if", "else", "for", "while", "do", "switch", "return", "try"],
   "requirePaddingNewLinesInObjects": true,
+  "requirePaddingNewLinesAfterBlocks": true,
+  "requirePaddingNewLinesBeforeLineComments": true,
   "requireParenthesesAroundIIFE": true,
   "requireSpacesInConditionalExpression": true,
   "requireCommaBeforeLineBreak": true,
@@ -50,5 +53,9 @@
   "validateJSDoc": {
     "checkParamNames": true,
     "requireParamTypes": true
+  },
+  "validateQuoteMarks": {
+    "mark": "'",
+    "escape": true
   }
 }

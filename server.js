@@ -1,13 +1,11 @@
 'use strict';
 
-var app = require('./server/app');
+var App = require('./server/app');
+var app = new App();
 
-var config = {};
+var Configuration = require('./server/configuration');
+var config = new Configuration();
+require('./visualtesting.conf.js')(config);
 
-config.ip = '0.0.0.0';
-config.port = '9000';
-
-// Start server
-app.listen(config.port, config.ip, function() {
-  console.log('Express server listening on %s:%d, in %s mode', config.ip, config.port, app.get('env'));
-});
+app.useConfiguration(config);
+app.start();
