@@ -7,7 +7,7 @@ require('sinon-as-promised')(Bluebird);
 var TarHelper = require('../server/utils/tar-helper');
 var Configuration = require('../server/configuration');
 
-describe('module/checkBuild', function() {
+describe('module/check-build', function() {
   var dispatcherStub;
   var storageStub;
   var actionsStub;

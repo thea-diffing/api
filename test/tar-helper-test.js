@@ -9,7 +9,7 @@ var path = require('path');
 var TarHelper = require('../server/utils/tar-helper');
 var dirHelper = require('../server/utils/dir-helper');
 
-describe('module/tarHelper', function() {
+describe('module/tar-helper', function() {
   var tmpData;
 
   before(function() {
