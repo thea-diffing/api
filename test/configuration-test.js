@@ -16,9 +16,9 @@ describe('module/configuration', function() {
   it('should not share state with a second instance', function() {
     var config2 = new Configuration();
     config.set({
-      service: 'foo'
+      port: '2000'
     });
 
-    assert.notEqual(config.getService(), config2.getService());
+    assert.notEqual(config.getPort(), config2.getPort());
   });
 });

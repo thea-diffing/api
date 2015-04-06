@@ -95,6 +95,12 @@ describe('module/serviceListener', function() {
     });
 
     describe('without a service', function() {
+      beforeEach(function() {
+        config.set({
+          services: []
+        });
+      });
+
       it('should resolve', function() {
         return assert.isFulfilled(serviceListener._setBuildStatus({
           project: 'project',
@@ -107,29 +113,56 @@ describe('module/serviceListener', function() {
     describe('with a service', function() {
       beforeEach(function() {
         config.set({
-          service: fakeService
+          services: [fakeService]
         });
       });
 
-      it('should call the service setBuildStatus', function() {
-        storageStub.getProjectInfo = this.sinon.stub().resolves({
-          service: projectConfig
+      describe('that does not match the project config', function() {
+        beforeEach(function() {
+          fakeService.serviceKey = 'foo';
         });
 
-        return serviceListener._setBuildStatus({
-          project: 'project',
-          sha: 'sha',
-          status: 'success'
-        })
-        .then(function() {
-          assert.calledWithExactly(
-            fakeService.setBuildStatus,
-            projectConfig,
-            {
-              sha: 'sha',
-              status: 'success'
-            }
-          );
+        it('should not call service setBuildStatus', function() {
+          storageStub.getProjectInfo = this.sinon.stub().resolves({
+            service: projectConfig
+          });
+
+          return serviceListener._setBuildStatus({
+            project: 'project',
+            sha: 'sha',
+            status: 'success'
+          })
+          .then(function() {
+            assert.notCalled(fakeService.setBuildStatus);
+          });
+        });
+      });
+
+      describe('that matches the project config', function() {
+        beforeEach(function() {
+          fakeService.serviceKey = 'github';
+        });
+
+        it('should call the service setBuildStatus', function() {
+          storageStub.getProjectInfo = this.sinon.stub().resolves({
+            service: projectConfig
+          });
+
+          return serviceListener._setBuildStatus({
+            project: 'project',
+            sha: 'sha',
+            status: 'success'
+          })
+          .then(function() {
+            assert.calledWithExactly(
+              fakeService.setBuildStatus,
+              projectConfig,
+              {
+                sha: 'sha',
+                status: 'success'
+              }
+            );
+          });
         });
       });
     });
@@ -166,6 +199,12 @@ describe('module/serviceListener', function() {
     });
 
     describe('without a service', function() {
+      beforeEach(function() {
+        config.set({
+          services: []
+        });
+      });
+
       it('should resolve', function() {
         return assert.isFulfilled(serviceListener._addComment({
           project: 'project',
@@ -178,29 +217,56 @@ describe('module/serviceListener', function() {
     describe('with a service', function() {
       beforeEach(function() {
         config.set({
-          service: fakeService
+          services: [fakeService]
         });
       });
 
-      it('should call the service addComment', function() {
-        storageStub.getProjectInfo = this.sinon.stub().resolves({
-          service: projectConfig
+      describe('that does not match the project config', function() {
+        beforeEach(function() {
+          fakeService.serviceKey = 'foo';
         });
 
-        return serviceListener._addComment({
-          project: 'project',
-          sha: 'sha',
-          comment: 'comment'
-        })
-        .then(function() {
-          assert.calledWithExactly(
-            fakeService.addComment,
-            projectConfig,
-            {
-              sha: 'sha',
-              comment: 'comment'
-            }
-          );
+        it('should not call addComment', function() {
+          storageStub.getProjectInfo = this.sinon.stub().resolves({
+            service: projectConfig
+          });
+
+          return serviceListener._addComment({
+            project: 'project',
+            sha: 'sha',
+            comment: 'comment'
+          })
+          .then(function() {
+            assert.notCalled(fakeService.addComment);
+          });
+        });
+      });
+
+      describe('that matches the project config', function() {
+        beforeEach(function() {
+          fakeService.serviceKey = 'github';
+        });
+
+        it('should call the service addComment', function() {
+          storageStub.getProjectInfo = this.sinon.stub().resolves({
+            service: projectConfig
+          });
+
+          return serviceListener._addComment({
+            project: 'project',
+            sha: 'sha',
+            comment: 'comment'
+          })
+          .then(function() {
+            assert.calledWithExactly(
+              fakeService.addComment,
+              projectConfig,
+              {
+                sha: 'sha',
+                comment: 'comment'
+              }
+            );
+          });
         });
       });
     });

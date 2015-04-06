@@ -1,7 +1,6 @@
 'use strict';
 
 var Bluebird = require('bluebird');
-// var assert = require('chai').assert;
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
 var actions = require('../actions');

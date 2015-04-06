@@ -14,18 +14,23 @@ function setBuildStatus(options) {
   assert.isString(options.sha);
   assert.isString(options.status);
 
-  var service = config.getService();
-
-  if (service === undefined) {
+  var services = config.getServices();
+  if (services.length === 0) {
     return Bluebird.resolve();
   }
 
   return storage.getProjectInfo(options.project)
   .then(function(info) {
-    return service.setBuildStatus(info.service, {
-      sha: options.sha,
-      status: options.status
-    });
+    return Bluebird.any(
+      services.map(function(service) {
+        if (service.serviceKey === info.service.name) {
+          return service.setBuildStatus(info.service, {
+            sha: options.sha,
+            status: options.status
+          });
+        }
+      })
+    );
   });
 }
 
@@ -35,18 +40,23 @@ function addComment(options) {
   assert.isString(options.sha);
   assert.isString(options.comment);
 
-  var service = config.getService();
-
-  if (service === undefined) {
+  var services = config.getServices();
+  if (services.length === 0) {
     return Bluebird.resolve();
   }
 
   return storage.getProjectInfo(options.project)
   .then(function(info) {
-    return service.addComment(info.service, {
-      sha: options.sha,
-      comment: options.comment
-    });
+    return Bluebird.any(
+      services.map(function(service) {
+        if (service.serviceKey === info.service.name) {
+          return service.addComment(info.service, {
+            sha: options.sha,
+            comment: options.comment
+          });
+        }
+      })
+    );
   });
 }
 
