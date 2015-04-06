@@ -19,6 +19,6 @@ install:
   - npm install
 
 test_script:
-  - npm run appveyor
+  - npm test
 
 build: off
