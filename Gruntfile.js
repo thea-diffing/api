@@ -15,8 +15,7 @@ module.exports = function(grunt) {
       express: {
         files: [
           'server.js',
-          'server/**/*.{js,json}',
-          'visualtesting.conf.js'
+          'server/**/*.{js,json}'
         ],
         tasks: ['express:dev'],
         options: {
