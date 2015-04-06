@@ -45,7 +45,7 @@ App.prototype = {
     var checkBuild = new CheckBuild(config);
     checkBuild.register();
 
-    var ServiceListener = require('./serviceListener');
+    var ServiceListener = require('./service-listener');
     var serviceListener = new ServiceListener(config);
     serviceListener.register();
 

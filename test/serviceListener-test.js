@@ -25,7 +25,7 @@ describe('module/serviceListener', function() {
 
     storageStub = {};
 
-    var ServiceListener = proxyquire('../server/serviceListener', {
+    var ServiceListener = proxyquire('../server/service-listener', {
       './dispatcher': dispatcherStub
     });
 

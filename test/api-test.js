@@ -35,9 +35,8 @@ describe('module/api', function() {
     checkBuildStub.prototype.register = function() {};
 
     var App = proxyquire('../server/app', {
-      // '../utils/storage': storageStub,
       '../actions': actionsStub,
-      './serviceListener': serviceListenerStub,
+      './service-listener': serviceListenerStub,
       './check-build': checkBuildStub
     });
 
