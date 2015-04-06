@@ -6,8 +6,8 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
-var dirHelper = require('./dirHelper');
 var tarHelper = require('./tarHelper');
+var dirHelper = require('./dir-helper');
 
 chai.use(require('chai-as-promised'));
 var assert = chai.assert;

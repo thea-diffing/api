@@ -12,7 +12,7 @@ var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 
 var storage = require('../server/utils/storage');
 var TarHelper = require('../server/utils/tarHelper');
-var dirHelper = require('../server/utils/dirHelper');
+var dirHelper = require('../server/utils/dir-helper');
 
 describe('module/storage', function() {
   before(function() {
@@ -784,7 +784,7 @@ describe('module/storage', function() {
       readFilesStub = this.sinon.stub().resolves([]);
 
       storage = proxyquire('../server/utils/storage', {
-        './dirHelper': {
+        './dir-helper': {
           readFiles: readFilesStub
         }
       });

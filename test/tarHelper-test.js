@@ -7,7 +7,7 @@ var uuid = require('node-uuid');
 var path = require('path');
 
 var TarHelper = require('../server/utils/tarHelper');
-var dirHelper = require('../server/utils/dirHelper');
+var dirHelper = require('../server/utils/dir-helper');
 
 describe('module/tarHelper', function() {
   var tmpData;
