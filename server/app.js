@@ -41,7 +41,7 @@ App.prototype = {
       api: new Api(config)
     });
 
-    var CheckBuild = require('./checkBuild');
+    var CheckBuild = require('./check-build');
     var checkBuild = new CheckBuild(config);
     checkBuild.register();
 

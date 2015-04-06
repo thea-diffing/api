@@ -36,7 +36,7 @@ describe('module/checkBuild', function() {
       addComment: this.sinon.spy()
     };
 
-    var CheckBuild = proxyquire('../server/checkBuild', {
+    var CheckBuild = proxyquire('../server/check-build', {
       './dispatcher': dispatcherStub,
       './actions': actionsStub
     });

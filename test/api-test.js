@@ -38,7 +38,7 @@ describe('module/api', function() {
       // '../utils/storage': storageStub,
       '../actions': actionsStub,
       './serviceListener': serviceListenerStub,
-      './checkBuild': checkBuildStub
+      './check-build': checkBuildStub
     });
 
     var app = new App();
