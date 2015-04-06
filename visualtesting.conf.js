@@ -16,7 +16,7 @@ function Apply(config) {
   config.set({
     port: 9000,
 
-    service: service,
+    services: [service],
 
     differ: Differ,
     storage: storage

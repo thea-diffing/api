@@ -6,7 +6,7 @@ var defaults = {
   url: 'http://visualdiff.ngrok.com',
   ip: '0.0.0.0',
   port: 8999,
-  service: undefined,
+  services: [],
   differ: undefined,
   storage: undefined
 };
@@ -20,8 +20,8 @@ Configuration.prototype = {
     merge(this._config, newConfig);
   },
 
-  getService: function() {
-    return this._config.service;
+  getServices: function() {
+    return this._config.services;
   },
 
   getIp: function() {

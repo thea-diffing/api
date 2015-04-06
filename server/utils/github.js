@@ -5,7 +5,7 @@ var Github = require('./asyncGithub');
 
 function verifyConfig(config) {
   assert.isObject(config);
-  assert.equal(config.name, 'github');
+  assert.equal(config.name, GithubUtils.prototype.serviceKey());
   assert.isObject(config.options);
   assert.isString(config.options.user);
   assert.isString(config.options.repository);
@@ -22,6 +22,8 @@ function GithubUtils(options) {
 }
 
 GithubUtils.prototype = {
+  serviceKey: 'github',
+
   setBuildStatus: function(config, options) {
     verifyConfig(config);
 
