@@ -4,10 +4,10 @@ var proxyquire = require('proxyquire');
 var Bluebird = require('bluebird');
 require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
-var TarHelper = require('../server/utils/tarHelper');
+var TarHelper = require('../server/utils/tar-helper');
 var Configuration = require('../server/configuration');
 
-describe('module/checkBuild', function() {
+describe('module/check-build', function() {
   var dispatcherStub;
   var storageStub;
   var actionsStub;
@@ -36,7 +36,7 @@ describe('module/checkBuild', function() {
       addComment: this.sinon.spy()
     };
 
-    var CheckBuild = proxyquire('../server/checkBuild', {
+    var CheckBuild = proxyquire('../server/check-build', {
       './dispatcher': dispatcherStub,
       './actions': actionsStub
     });

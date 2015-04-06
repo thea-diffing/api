@@ -41,11 +41,11 @@ App.prototype = {
       api: new Api(config)
     });
 
-    var CheckBuild = require('./checkBuild');
+    var CheckBuild = require('./check-build');
     var checkBuild = new CheckBuild(config);
     checkBuild.register();
 
-    var ServiceListener = require('./serviceListener');
+    var ServiceListener = require('./service-listener');
     var serviceListener = new ServiceListener(config);
     serviceListener.register();
 

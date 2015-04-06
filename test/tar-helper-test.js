@@ -6,10 +6,10 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var uuid = require('node-uuid');
 var path = require('path');
 
-var TarHelper = require('../server/utils/tarHelper');
-var dirHelper = require('../server/utils/dirHelper');
+var TarHelper = require('../server/utils/tar-helper');
+var dirHelper = require('../server/utils/dir-helper');
 
-describe('module/tarHelper', function() {
+describe('module/tar-helper', function() {
   var tmpData;
 
   before(function() {

@@ -29,6 +29,7 @@
     "chai-shallow-deep-equal": "^1.3.0",
     "coveralls": "^2.11.2",
     "grunt-contrib-watch": "~0.5.2",
+    "grunt-path-validator": "^1.0.1",
     "istanbul": "^0.3.7",
     "jscs": "^1.11.3",
     "jshint": "^2.6.3",
@@ -46,8 +47,7 @@
   },
   "scripts": {
     "start": "grunt serve",
-    "test": "mocha --color",
-    "travis": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
-    "appveyor": "mocha --color"
+    "test": "grunt style && mocha --color",
+    "travis": "grunt style && istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
   }
 }

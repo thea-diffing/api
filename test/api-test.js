@@ -6,7 +6,7 @@ var path = require('path');
 var proxyquire = require('proxyquire');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
-var TarHelper = require('../server/utils/tarHelper');
+var TarHelper = require('../server/utils/tar-helper');
 
 describe('module/api', function() {
   var storageStub;
@@ -35,10 +35,9 @@ describe('module/api', function() {
     checkBuildStub.prototype.register = function() {};
 
     var App = proxyquire('../server/app', {
-      // '../utils/storage': storageStub,
       '../actions': actionsStub,
-      './serviceListener': serviceListenerStub,
-      './checkBuild': checkBuildStub
+      './service-listener': serviceListenerStub,
+      './check-build': checkBuildStub
     });
 
     var app = new App();

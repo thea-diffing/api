@@ -43,6 +43,15 @@ module.exports = function(grunt) {
           node_env: 'production'
         }
       }
+    },
+
+    path_validator: {
+      js: {
+        src: [
+          '{server,test}/**/*[A-Z]*.js',
+          '!**/node_modules/**/*.js'
+        ]
+      }
     }
   });
 
@@ -59,6 +68,8 @@ module.exports = function(grunt) {
       done();
     }, 500);
   });
+
+  grunt.registerTask('style', ['path_validator']);
 
   grunt.registerTask('serve', ['express:dev', 'watch']);
   grunt.registerTask('heroku', ['serve']);

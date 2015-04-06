@@ -7,7 +7,7 @@ require('sinon-as-promised')(Bluebird);
 
 var Configuration = require('../server/configuration');
 
-describe('module/serviceListener', function() {
+describe('module/service-listener', function() {
   var dispatcherStub;
   var storageStub;
 
@@ -25,7 +25,7 @@ describe('module/serviceListener', function() {
 
     storageStub = {};
 
-    var ServiceListener = proxyquire('../server/serviceListener', {
+    var ServiceListener = proxyquire('../server/service-listener', {
       './dispatcher': dispatcherStub
     });
 

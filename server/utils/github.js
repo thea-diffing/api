@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('chai').assert;
-var Github = require('./asyncGithub');
+var Github = require('./async-github');
 
 function verifyConfig(config) {
   assert.isObject(config);

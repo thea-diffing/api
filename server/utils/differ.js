@@ -2,7 +2,7 @@
 
 var Bluebird = require('bluebird');
 var resemble = require('node-resemble-js');
-var TarHelper = require('./tarHelper');
+var TarHelper = require('./tar-helper');
 
 var differ = {
   /*

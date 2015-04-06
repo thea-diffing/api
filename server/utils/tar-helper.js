@@ -6,7 +6,7 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
 var Targz = require('tar.gz');
-var dirHelper = require('./dirHelper');
+var dirHelper = require('./dir-helper');
 
 var TarHelper = {
   createImage: function() {
