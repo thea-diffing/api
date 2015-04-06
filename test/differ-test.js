@@ -1,6 +1,6 @@
 'use strict';
 
-var TarHelper = require('../server/utils/tarHelper');
+var TarHelper = require('../server/utils/tar-helper');
 var differ = require('../server/utils/differ');
 
 describe('module/differ', function() {

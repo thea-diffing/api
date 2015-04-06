@@ -6,7 +6,7 @@ var path = require('path');
 var proxyquire = require('proxyquire');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 
-var TarHelper = require('../server/utils/tarHelper');
+var TarHelper = require('../server/utils/tar-helper');
 
 describe('module/api', function() {
   var storageStub;

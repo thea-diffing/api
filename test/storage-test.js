@@ -11,7 +11,7 @@ var uuid = require('node-uuid');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 
 var storage = require('../server/utils/storage');
-var TarHelper = require('../server/utils/tarHelper');
+var TarHelper = require('../server/utils/tar-helper');
 var dirHelper = require('../server/utils/dir-helper');
 
 describe('module/storage', function() {
