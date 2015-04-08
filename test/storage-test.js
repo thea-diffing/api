@@ -10,17 +10,27 @@ require('sinon-as-promised')(Bluebird);
 var uuid = require('node-uuid');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 
-var storage = require('../server/utils/storage');
 var TarHelper = require('../server/utils/tar-helper');
 var dirHelper = require('../server/utils/dir-helper');
 
 describe('module/storage', function() {
-  before(function() {
-    storage._dataPath = __TESTDATA__;
+  var storage;
+  var dirHelperStub;
+
+  beforeEach(function() {
+    dirHelperStub = {};
+
+    var Storage = proxyquire('../server/utils/storage', {
+      './dir-helper': dirHelperStub
+    });
+
+    storage = new Storage({
+      dataPath: __TESTDATA__
+    });
   });
 
   after(function() {
-    return fs.removeAsync(storage._dataPath);
+    return fs.removeAsync(__TESTDATA__);
   });
 
   describe('path generators', function() {
@@ -33,10 +43,6 @@ describe('module/storage', function() {
       var expectedShasPath = path.join(__TESTDATA__, 'project', 'shas');
       assert.equal(storage._getShasPath('project'), expectedShasPath);
     });
-  });
-
-  it('has _getBuildsPath', function() {
-    assert(storage._getBuildsPath !== undefined);
   });
 
   describe('#hasProject', function() {
@@ -775,19 +781,11 @@ describe('module/storage', function() {
 
   describe('#getImagesForShaBrowser', function() {
     var project;
-    var readFilesStub;
-    var storage;
 
     beforeEach(function() {
       project = uuid.v4();
 
-      readFilesStub = this.sinon.stub().resolves([]);
-
-      storage = proxyquire('../server/utils/storage', {
-        './dir-helper': {
-          readFiles: readFilesStub
-        }
-      });
+      dirHelperStub.readFiles = this.sinon.stub().resolves([]);
 
       this.sinon.stub(storage, 'hasProject').resolves(true);
     });
@@ -812,7 +810,7 @@ describe('module/storage', function() {
       .then(function() {
         var browserPath = path.join(storage._getShasPath(project), sha, browser);
 
-        assert.calledOnce(readFilesStub.withArgs(browserPath));
+        assert.calledOnce(dirHelperStub.readFiles.withArgs(browserPath));
       });
     });
   });
