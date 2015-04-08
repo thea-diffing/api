@@ -13,7 +13,7 @@ var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var TarHelper = require('../server/utils/tar-helper');
 var dirHelper = require('../server/utils/dir-helper');
 
-var IntegrationTest = require('./storage-integration-test.js');
+var IntegrationTest = require('../').integrationTests.storage;
 
 describe('module/storage', function() {
   var storage;
