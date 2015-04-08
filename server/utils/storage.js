@@ -12,21 +12,6 @@ var tarHelper = require('./tar-helper');
 chai.use(require('chai-as-promised'));
 var assert = chai.assert;
 
-var root = path.join(__dirname, '..', '..');
-var dataPath = path.join(root, 'data');
-
-function getProjectPath(project) {
-  return path.join(dataPath, project);
-}
-
-function getBuildsPath(project) {
-  return path.join(getProjectPath(project), 'builds');
-}
-
-function getShasPath(project) {
-  return path.join(getProjectPath(project), 'shas');
-}
-
 function getImageFromPath(path) {
   return new Bluebird(function(resolve, reject) {
     var domain = require('domain').create();
@@ -36,7 +21,7 @@ function getImageFromPath(path) {
 
     domain.run(function() {
       PNGImage.readImageAsync(path)
-  .then(function(image) {
+      .then(function(image) {
         resolve(image.getImage());
       })
       .catch(function(err) {
@@ -46,12 +31,31 @@ function getImageFromPath(path) {
   });
 }
 
-var Storage = {
+function Storage(options) {
+  assert.isObject(options);
+  assert.isString(options.dataPath);
+
+  this._options = options;
+}
+
+Storage.prototype = {
+  _getProjectPath: function(project) {
+    return path.join(this._options.dataPath, project);
+  },
+
+  _getBuildsPath: function(project) {
+    return path.join(this._getProjectPath(project), 'builds');
+  },
+
+  _getShasPath: function(project) {
+    return path.join(this._getProjectPath(project), 'shas');
+  },
+
   createProject: function(options) {
     assert.isObject(options);
 
     var guid = uuid.v4();
-    var projectFile = path.join(getProjectPath(guid), 'project.json');
+    var projectFile = path.join(this._getProjectPath(guid), 'project.json');
     options.project = guid;
 
     return fs.outputJSONAsync(projectFile, options)
@@ -63,7 +67,7 @@ var Storage = {
   },
 
   hasProject: function(project) {
-    return fs.statAsync(path.join(dataPath, project, 'project.json'))
+    return fs.statAsync(path.join(this._getProjectPath(project), 'project.json'))
     .then(function(stat) {
       return stat.isFile();
     })
@@ -76,11 +80,11 @@ var Storage = {
     assert.isString(project);
 
     return assert.eventually.isTrue(this.hasProject(project), 'Unknown Project')
-    .then(function() {
-      var buildFile = path.join(getProjectPath(project), 'project.json');
+    .then((function() {
+      var buildFile = path.join(this._getProjectPath(project), 'project.json');
 
       return fs.readJSONAsync(buildFile);
-    });
+    }).bind(this));
   },
 
   startBuild: function(options) {
@@ -93,10 +97,9 @@ var Storage = {
     var guid;
 
     return assert.eventually.isTrue(this.hasProject(options.project))
-    .then(function() {
+    .then((function() {
       guid = uuid.v4();
-
-      var buildFile = path.join(getBuildsPath(options.project), guid, 'build.json');
+      var buildFile = path.join(this._getBuildsPath(options.project), guid, 'build.json');
 
       return fs.outputJSONAsync(buildFile, {
         build: guid,
@@ -105,7 +108,7 @@ var Storage = {
         numBrowsers: options.numBrowsers,
         status: 'pending'
       });
-    })
+    }).bind(this))
     .then((function() {
       return Bluebird.all([
         this.addBuildToSha({
@@ -133,9 +136,9 @@ var Storage = {
     assert.isString(options.build);
 
     return assert.eventually.isTrue(this.hasProject(options.project))
-    .then(function() {
-      return fs.statAsync(path.join(getBuildsPath(options.project), options.build, 'build.json'));
-    })
+    .then((function() {
+      return fs.statAsync(path.join(this._getBuildsPath(options.project), options.build, 'build.json'));
+    }).bind(this))
     .then(function(stat) {
       return stat.isFile();
     })
@@ -158,7 +161,7 @@ var Storage = {
       var build = options.build;
       var sha = options.sha;
 
-      var shaBuildsPath = getShasPath(options.project);
+      var shaBuildsPath = this._getShasPath(options.project);
       var shaBuildsFile = path.join(shaBuildsPath, sha, 'builds.json');
 
       return fs.ensureDirAsync(shaBuildsPath)
@@ -188,10 +191,10 @@ var Storage = {
     assert.isString(options.sha);
 
     return assert.eventually.isTrue(this.hasProject(options.project))
-    .then(function() {
+    .then((function() {
       var sha = options.sha;
 
-      var shaPath = path.join(getShasPath(options.project), sha);
+      var shaPath = path.join(this._getShasPath(options.project), sha);
 
       return fs.statAsync(shaPath)
       .then(function(stat) {
@@ -208,7 +211,7 @@ var Storage = {
           return [];
         }
       });
-    });
+    }).bind(this));
   },
 
   getBuildInfo: function(options) {
@@ -220,11 +223,11 @@ var Storage = {
       project: options.project,
       build: options.build
     }))
-    .then(function() {
-      var buildFile = path.join(getBuildsPath(options.project), options.build, 'build.json');
+    .then((function() {
+      var buildFile = path.join(this._getBuildsPath(options.project), options.build, 'build.json');
 
       return fs.readJSONAsync(buildFile);
-    })
+    }).bind(this))
     .catch(function() {
       throw Error('Unknown Build');
     });
@@ -242,7 +245,7 @@ var Storage = {
 
     var status = options.status;
     var diffs = options.diffs;
-    var buildFile = path.join(getBuildsPath(options.project), options.build, 'build.json');
+    var buildFile = path.join(this._getBuildsPath(options.project), options.build, 'build.json');
 
     return assert.eventually.isTrue(this.hasBuild({
       project: options.project,
@@ -266,7 +269,7 @@ var Storage = {
     assert.isString(options.sha);
     assert.isString(options.tarPath);
 
-    var extractPath = path.join(getShasPath(options.project), options.sha, options.browser);
+    var extractPath = path.join(this._getShasPath(options.project), options.sha, options.browser);
 
     return assert.eventually.isTrue(this.hasProject(options.project))
     .then(function() {
@@ -282,7 +285,7 @@ var Storage = {
     assert.isString(options.project);
     assert.isString(options.sha);
 
-    var shaPath = path.join(getShasPath(options.project), options.sha);
+    var shaPath = path.join(this._getShasPath(options.project), options.sha);
 
     return assert.eventually.isTrue(this.hasProject(options.project))
     .then(function() {
@@ -306,10 +309,10 @@ var Storage = {
     var browser = options.browser;
 
     return assert.eventually.isTrue(this.hasProject(options.project))
-    .then(function() {
-      var browserPath = path.join(getShasPath(project), sha, browser);
+    .then((function() {
+      var browserPath = path.join(this._getShasPath(project), sha, browser);
       return dirHelper.readFiles(browserPath);
-    });
+    }).bind(this));
   },
 
   /*
@@ -327,7 +330,7 @@ var Storage = {
     var browser = options.browser;
     var image = options.image;
 
-    var imagePath = path.join(getShasPath(project), sha, browser, image);
+    var imagePath = path.join(this._getShasPath(project), sha, browser, image);
 
     return assert.eventually.isTrue(this.hasProject(options.project))
     .then(function() {
@@ -350,7 +353,7 @@ var Storage = {
     var browser = options.browser;
     var image = options.image;
 
-    var imagePath = path.join(getBuildsPath(project), build, browser, image);
+    var imagePath = path.join(this._getBuildsPath(project), build, browser, image);
 
     return assert.eventually.isTrue(this.hasBuild({
       project: options.project,
@@ -382,7 +385,7 @@ var Storage = {
     var imageName = options.imageName;
     var imageData = options.imageData;
 
-    var folder = path.join(getBuildsPath(project), build, browser);
+    var folder = path.join(this._getBuildsPath(project), build, browser);
     var imagePath = path.join(folder, imageName);
 
     return assert.eventually.isTrue(this.hasBuild({
@@ -404,16 +407,7 @@ var Storage = {
 };
 
 if (process.env.NODE_ENV === 'test') {
-  Object.defineProperty(Storage, '_dataPath', {
-    get: function() {
-      return dataPath;
-    },
-    set: function(newPath) {
-      dataPath = newPath;
-    }
-  });
-
-  Object.defineProperty(Storage, '_getImageFromPath', {
+  Object.defineProperty(Storage.prototype, '_getImageFromPath', {
     get: function() {
       return getImageFromPath;
     },
@@ -421,10 +415,6 @@ if (process.env.NODE_ENV === 'test') {
       getImageFromPath = newFunc;
     }
   });
-
-  Storage._getProjectPath = getProjectPath;
-  Storage._getBuildsPath = getBuildsPath;
-  Storage._getShasPath = getShasPath;
 }
 
 module.exports = Storage;
