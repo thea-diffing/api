@@ -24,6 +24,12 @@ Configuration.prototype = {
     return this._config.services;
   },
 
+  getSupportedServices: function() {
+    return this._config.services.map(function(service) {
+      return service.serviceKey;
+    });
+  },
+
   getIp: function() {
     return this._config.ip;
   },

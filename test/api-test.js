@@ -9,6 +9,8 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var TarHelper = require('../server/utils/tar-helper');
 
 describe('module/api', function() {
+  var config;
+
   var storageStub;
   var actionsStub;
   var api;
@@ -42,7 +44,7 @@ describe('module/api', function() {
 
     var app = new App();
     var Configuration = require('../server/configuration');
-    var config = new Configuration();
+    config = new Configuration();
     config.set({
       storage: storageStub
     });
@@ -69,7 +71,32 @@ describe('module/api', function() {
           });
       });
 
+      it('should fail with no installed dvcs', function() {
+        return instance.send({
+          service: {
+            name: 'bad',
+            options: {
+              user: 'user',
+              repository: 'repo'
+            }
+          }
+        })
+        .expect(400)
+        .expect(function(data) {
+          var body = data.body;
+
+          assert.equal(body.status, 'failure');
+          assert.equal(body.message, 'unsupported dvcs');
+        });
+      });
+
       it('should fail when not given recognized dvcs', function() {
+        config.set({
+          services: [{
+            serviceKey: 'github'
+          }]
+        });
+
         return instance.send({
           service: {
             name: 'bad',
@@ -93,6 +120,12 @@ describe('module/api', function() {
       var projectOptions;
 
       beforeEach(function() {
+        config.set({
+          services: [{
+            serviceKey: 'github'
+          }]
+        });
+
         projectOptions = {
           service: {
             name: 'github',

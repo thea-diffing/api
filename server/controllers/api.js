@@ -39,7 +39,7 @@ Api.prototype = {
       return;
     }
 
-    if (service.name !== 'github') {
+    if (configuration.getSupportedServices().indexOf(service.name) === -1) {
       res.status(400).json({
         status: 'failure',
         message: 'unsupported dvcs'
