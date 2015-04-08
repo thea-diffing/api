@@ -5,7 +5,7 @@ var Github = require('./async-github');
 
 function verifyConfig(config) {
   assert.isObject(config);
-  assert.equal(config.name, GithubUtils.prototype.serviceKey());
+  assert.equal(config.name, GithubUtils.prototype.serviceKey);
   assert.isObject(config.options);
   assert.isString(config.options.user);
   assert.isString(config.options.repository);
@@ -29,7 +29,7 @@ GithubUtils.prototype = {
 
     assert.isObject(options);
     assert.isString(options.sha);
-    assert.isString(options.status);
+    assert.include(['pending', 'success', 'failure'], options.status);
 
     return Github.statuses.createAsync({
       user: config.options.user,
