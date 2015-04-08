@@ -53,5 +53,6 @@
   },
   "bin" : {
     "visualtesting-api" : "./bin/start.js"
-  }
+  },
+  "main": "main.js"
 }
