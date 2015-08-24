@@ -13,21 +13,9 @@ chai.use(require('chai-as-promised'));
 var assert = chai.assert;
 
 function getImageFromPath(path) {
-  return new Bluebird(function(resolve, reject) {
-    var domain = require('domain').create();
-    domain.on('error', function(err) {
-      reject(err);
-    });
-
-    domain.run(function() {
-      PNGImage.readImageAsync(path)
-      .then(function(image) {
-        resolve(image.getImage());
-      })
-      .catch(function(err) {
-        reject(err);
-      });
-    });
+  return fs.statAsync(path)
+  .then(function(stat) {
+    return fs.createReadStream(path);
   });
 }
 
