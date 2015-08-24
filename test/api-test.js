@@ -5,6 +5,7 @@ var request = require('supertest-as-promised');
 var path = require('path');
 var proxyquire = require('proxyquire');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
+var Readable = require('stream').Readable;
 
 var TarHelper = require('../server/utils/tar-helper');
 
@@ -15,6 +16,8 @@ describe('module/api', function() {
   var actionsStub;
   var api;
   var instance;
+
+  var fakeImageStream;
 
   beforeEach(function() {
     storageStub = {};
@@ -52,6 +55,10 @@ describe('module/api', function() {
     app.useConfiguration(config);
 
     api = request(app._instance);
+
+    fakeImageStream = new Readable;
+    fakeImageStream.push('foo');
+    fakeImageStream.push(null);
   });
 
   describe('#createProject', function() {
@@ -663,7 +670,7 @@ describe('module/api', function() {
         sha: 'sha',
         browser: 'browser',
         image: 'image.png'
-      })).resolves();
+      })).resolves(fakeImageStream);
 
       return api.get('/api/image/project/sha/browser/image.png')
       .expect(function() {
@@ -672,8 +679,7 @@ describe('module/api', function() {
     });
 
     it('should render an image if exists', function() {
-      var img = TarHelper.createImage();
-      storageStub.getImage = this.sinon.stub().resolves(img.getImage());
+      storageStub.getImage = this.sinon.stub().resolves(fakeImageStream);
 
       return api.get('/api/image/project/sha/browser/image.png')
       .expect(200);
@@ -681,6 +687,7 @@ describe('module/api', function() {
 
     it('should 404 if image does not exist', function() {
       storageStub.getImage = this.sinon.stub().rejects();
+
       return api.get('/api/image/project/sha/browser/image.png')
       .expect(404);
     });
@@ -694,7 +701,7 @@ describe('module/api', function() {
         build: 'build',
         browser: 'browser',
         image: 'image.png'
-      })).resolves();
+      })).resolves(fakeImageStream);
 
       return api.get('/api/diff/project/build/browser/image.png')
       .expect(function() {
@@ -703,8 +710,7 @@ describe('module/api', function() {
     });
 
     it('should render an image if exists', function() {
-      var img = TarHelper.createImage();
-      storageStub.getDiff = this.sinon.stub().resolves(img.getImage());
+      storageStub.getDiff = this.sinon.stub().resolves(fakeImageStream);
 
       return api.get('/api/diff/project/build/browser/image.png')
       .expect(200);

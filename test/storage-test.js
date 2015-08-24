@@ -9,6 +9,7 @@ require('mocha-sinon');
 require('sinon-as-promised')(Bluebird);
 var uuid = require('node-uuid');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
+var Readable = require('stream').Readable;
 
 var TarHelper = require('../server/utils/tar-helper');
 var dirHelper = require('../server/utils/dir-helper');
@@ -18,6 +19,8 @@ var IntegrationTest = require('../').integrationTests.storage;
 describe('module/storage', function() {
   var storage;
   var dirHelperStub;
+
+  var fakeImageStream;
 
   beforeEach(function() {
     dirHelperStub = {};
@@ -29,6 +32,10 @@ describe('module/storage', function() {
     storage = new Storage({
       dataPath: __TESTDATA__
     });
+
+    fakeImageStream = new Readable;
+    fakeImageStream.push('foo');
+    fakeImageStream.push(null);
   });
 
   after(function() {
@@ -173,7 +180,7 @@ describe('module/storage', function() {
       });
 
       it('should reject with non existent project', function() {
-        assert.isRejected(storage.addBuildToSha({
+        return assert.isRejected(storage.addBuildToSha({
           project: 'project',
           build: 'build',
           sha: 'sha'
@@ -258,7 +265,7 @@ describe('module/storage', function() {
 
     describe('with valid args', function() {
       it('should reject if no project', function() {
-        assert.isRejected(storage.getBuildsForSha({
+        return assert.isRejected(storage.getBuildsForSha({
           project: 'project',
           sha: 'asfd'
         }));
@@ -439,7 +446,7 @@ describe('module/storage', function() {
   });
 
   describe('#_getImageFromPath', function() {
-    it('should return width, height, and data', function() {
+    it('should return a stream', function() {
       var imageData = TarHelper.createImage();
 
       var project = uuid.v4();
@@ -457,25 +464,22 @@ describe('module/storage', function() {
       .then(function() {
         return storage._getImageFromPath(imagePath);
       })
-      .then(function(image) {
-        assert.isDefined(image.width);
-        assert.isDefined(image.height);
-        assert.isDefined(image.data);
-        assert.isDefined(image.gamma);
+      .then(function(imageStream) {
+        assert.instanceOf(imageStream, Readable);
       });
     });
 
     it('should reject if no image', function() {
       var badFile = path.join(__dirname, 'foo.png');
 
-      assert.isRejected(storage._getImageFromPath(badFile));
+      return assert.isRejected(storage._getImageFromPath(badFile));
     });
   });
 
   describe('#getImage', function() {
     it('calls getImageFromPath', function() {
       this.sinon.stub(storage, 'hasProject').resolves(true);
-      storage._getImageFromPath = this.sinon.stub().resolves();
+      storage._getImageFromPath = this.sinon.stub().resolves(fakeImageStream);
 
       return storage.getImage({
         project: 'project',
@@ -492,7 +496,7 @@ describe('module/storage', function() {
   describe('#getDff', function() {
     it('calls getImageFromPath', function() {
       this.sinon.stub(storage, 'hasBuild').resolves(true);
-      storage._getImageFromPath = this.sinon.stub().resolves();
+      storage._getImageFromPath = this.sinon.stub().resolves(fakeImageStream);
 
       return storage.getDiff({
         project: 'project',

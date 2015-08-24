@@ -10,9 +10,10 @@ var storage;
 
 function serveImage(imagePromise, res) {
   imagePromise
-  .then(function(image) {
-    res.setHeader('Content-Type', 'image/png');
-    image.pack().pipe(res);
+  .then(function(imageStream) {
+    res.set('Content-Type', 'image/png');
+
+    imageStream.pipe(res);
   })
   .catch(function() {
     res.sendStatus(404);
