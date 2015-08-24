@@ -15,11 +15,7 @@ var assert = chai.assert;
 function getImageFromPath(path) {
   return fs.statAsync(path)
   .then(function(stat) {
-    if (stat.isFile()) {
-      return fs.createReadStream(path);
-    }
-
-    throw new Error('File not found at ', path);
+    return fs.createReadStream(path);
   });
 }
 
