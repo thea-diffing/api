@@ -1,8 +1,8 @@
 language: node_js
-script: "npm run travis"
+script: "npm test"
 node_js:
   - node
-  - io.js
+  - "0.12"
   - "0.10"
 notifications:
   email: false

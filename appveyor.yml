@@ -3,11 +3,9 @@ version: "{build}"
 environment:
   matrix:
   # node.js
+  - nodejs_version: "0"
   - nodejs_version: "0.12"
   - nodejs_version: "0.10"
-
-  # io.js
-  - nodejs_version: "1.5.0"
 
 matrix:
   fast_finish: true
