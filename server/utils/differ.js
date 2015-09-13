@@ -33,7 +33,7 @@ var differ = {
 
           resolve({
             distance: image.misMatchPercentage,
-            image: diffImage
+            image: diffImage.pack()
           });
         });
       });

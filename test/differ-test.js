@@ -12,8 +12,8 @@ describe('module/differ', function() {
       return differ.generateDiff(image1, image2)
       .then(function(result) {
         assert.equal(result.distance, 0.0);
-        assert.isDefined(result.image.width);
-        assert.isDefined(result.image.data);
+
+        assert.property(result.image, 'pack');
       });
     });
   });

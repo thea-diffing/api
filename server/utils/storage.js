@@ -6,6 +6,7 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
 var ReadableStream = require('stream').Readable;
+var streamToPromise = require('stream-to-promise');
 var dirHelper = require('./dir-helper');
 var tarHelper = require('./tar-helper');
 
@@ -356,7 +357,7 @@ Storage.prototype = {
   options.build string
   options.browser string
   options.imageName string
-  options.imageData pngjs
+  options.imageData WritableStream
   */
   saveDiffImage: function(options) {
     assert.isObject(options);
@@ -365,7 +366,7 @@ Storage.prototype = {
     assert.isString(options.browser);
     assert.isString(options.imageName);
     assert.isObject(options.imageData);
-    assert.instanceOf(options.imageData, ReadableStream);
+    assert.property(options.imageData, 'pipe');
 
     var project = options.project;
     var build = options.build;
@@ -384,12 +385,10 @@ Storage.prototype = {
       return fs.ensureDirAsync(folder);
     })
     .then(function() {
-      return new Bluebird(function(resolve) {
-        imageData.on('end', function() {
-          resolve();
-        })
-        .pipe(fs.createWriteStream(imagePath));
-      });
+      var writeStream = fs.createWriteStream(imagePath);
+      imageData.pipe(writeStream);
+
+      return streamToPromise(writeStream);
     });
   }
 };
