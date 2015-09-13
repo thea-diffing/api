@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/VisualTesting/api.svg?branch=master)](https://travis-ci.org/VisualTesting/api)
-[![Coverage Status](https://coveralls.io/repos/VisualTesting/api/badge.svg?branch=master)](https://coveralls.io/r/VisualTesting/api?branch=master)
-[![Dependency Status](https://david-dm.org/VisualTesting/api.svg)](https://david-dm.org/VisualTesting/api)
-[![devDependency Status](https://david-dm.org/VisualTesting/api/dev-status.svg)](https://david-dm.org/VisualTesting/api#info=devDependencies)
+[![Build Status](https://travis-ci.org/thea-diffing/api.svg?branch=master)](https://travis-ci.org/thea-diffing/api)
+[![Coverage Status](https://coveralls.io/repos/thea-diffing/api/badge.svg?branch=master)](https://coveralls.io/r/thea-diffing/api?branch=master)
+[![Dependency Status](https://david-dm.org/thea-diffing/api.svg)](https://david-dm.org/thea-diffing/api)
+[![devDependency Status](https://david-dm.org/thea-diffing/api/dev-status.svg)](https://david-dm.org/thea-diffing/api#info=devDependencies)
 
 More to come. The API server to power the visual testing framework.
 
