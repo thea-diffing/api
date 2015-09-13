@@ -5,7 +5,7 @@ var Bluebird = require('bluebird');
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var path = require('path');
 var uuid = require('node-uuid');
-var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
+var ReadableStream = require('stream').Readable;
 var dirHelper = require('./dir-helper');
 var tarHelper = require('./tar-helper');
 
@@ -365,7 +365,7 @@ Storage.prototype = {
     assert.isString(options.browser);
     assert.isString(options.imageName);
     assert.isObject(options.imageData);
-    assert.property(options.imageData, 'pack');
+    assert.instanceOf(options.imageData, ReadableStream);
 
     var project = options.project;
     var build = options.build;
@@ -385,7 +385,7 @@ Storage.prototype = {
     })
     .then(function() {
       return new Bluebird(function(resolve) {
-        imageData.pack().on('end', function() {
+        imageData.on('end', function() {
           resolve();
         })
         .pipe(fs.createWriteStream(imagePath));

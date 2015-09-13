@@ -10,6 +10,7 @@ require('sinon-as-promised')(Bluebird);
 var uuid = require('node-uuid');
 var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var Readable = require('stream').Readable;
+var streamToPromise = require('stream-to-promise');
 
 var TarHelper = require('../server/utils/tar-helper');
 var dirHelper = require('../server/utils/dir-helper');
@@ -459,7 +460,10 @@ describe('module/storage', function() {
 
       return fs.ensureDirAsync(browserPath)
       .then(function() {
-        return imageData.writeImageAsync(imagePath);
+        var writeStream = fs.createWriteStream(imagePath);
+        imageData.pipe(writeStream)
+
+        return streamToPromise(writeStream);
       })
       .then(function() {
         return storage._getImageFromPath(imagePath);
@@ -519,7 +523,7 @@ describe('module/storage', function() {
         build: 'build',
         browser: 'browser',
         imageName: 'navbar.png',
-        imageData: TarHelper.createImage().getImage()
+        imageData: TarHelper.createImage()
       };
 
       this.sinon.stub(storage, 'hasBuild').resolves(true);

@@ -3,11 +3,12 @@
 var Bluebird = require('bluebird');
 var resemble = require('node-resemble-js');
 var TarHelper = require('./tar-helper');
+var ReadableStream = require('stream').Readable;
 
 var differ = {
   /*
-  image1 pngjs
-  image2 pngjs
+  image1 ReadableStream
+  image2 ReadableStream
 
   resolves
   {
@@ -16,6 +17,9 @@ var differ = {
   }
   */
   generateDiff: function(image1, image2) {
+    assert.instanceOf(image1, ReadableStream);
+    assert.instanceOf(image2, ReadableStream);
+
     return Bluebird.all([
       TarHelper.imageData(image1),
       TarHelper.imageData(image2)

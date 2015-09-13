@@ -7,23 +7,15 @@ var path = require('path');
 var uuid = require('node-uuid');
 var Targz = require('tar.gz');
 var dirHelper = require('./dir-helper');
+var assert = require('chai').assert;
+var ReadableStream = require('stream').Readable;
+var streamToPromise = require('stream-to-promise');
 
 var TarHelper = {
   createImage: function() {
-    var width = 100;
-    var height = 300;
-    var image = PNGImage.createImage(width, height);
+    var filePath = path.resolve(__dirname, '../../', 'test/fixtures/test-image.png');
 
-    for (var y = 0; y < height; y++) {
-      for (var x = 0; x < width; x++) {
-        image.setAt(x, y, {
-          red:255, green:0, blue:255, alpha:255
-        });
-      }
-    }
-
-    image = Bluebird.promisifyAll(image);
-    return image;
+    return fs.createReadStream(filePath);
   },
 
   createBrowserTar: function(browser, fileName) {
@@ -44,7 +36,10 @@ var TarHelper = {
         return fs.ensureDirAsync(path.dirname(imagePath));
       })
       .then(function() {
-        return image.writeImageAsync(imagePath);
+        var writeStream = fs.createWriteStream(imagePath);
+        image.pipe(writeStream)
+
+        return streamToPromise(writeStream);
       });
     });
     return Bluebird.all(promises)
@@ -115,10 +110,12 @@ var TarHelper = {
     });
   },
 
-  imageData: function(pngjs) {
+  imageData: function(stream) {
+    assert.instanceOf(stream, ReadableStream);
+
     return new Bluebird(function(resolve, reject) {
       var buffers = [];
-      pngjs.pack()
+      stream
       .on('data', function(data) {
         buffers.push(data);
       })

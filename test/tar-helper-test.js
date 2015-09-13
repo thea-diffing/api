@@ -6,6 +6,7 @@ var fs = Bluebird.promisifyAll(require('fs-extra'));
 var uuid = require('node-uuid');
 var path = require('path');
 var ReadableStream = require('stream').Readable;
+var streamToPromise = require('stream-to-promise');
 
 var TarHelper = require('../server/utils/tar-helper');
 var dirHelper = require('../server/utils/dir-helper');
@@ -45,14 +46,17 @@ describe('module/tar-helper', function() {
 
       return fs.ensureDirAsync(folder)
       .then(function() {
-        return image.writeImageAsync(fileName);
+        var writeStream = fs.createWriteStream(fileName);
+        image.pipe(writeStream)
+
+        return streamToPromise(writeStream);
       })
       .then(function() {
         return PNGImage.readImageAsync(fileName);
       })
       .then(function(file) {
-        assert.equal(file.getWidth(), image.getWidth());
-        assert.equal(file.getHeight(), image.getHeight());
+        assert.isAbove(file.getWidth(), 0);
+        assert.isAbove(file.getHeight(), 0);
       });
     });
   });

@@ -662,8 +662,8 @@ describe('module/check-build', function() {
     });
 
     it('calls generateDiff with results from head and base', function() {
-      var image1Result = TarHelper.createImage().getImage();
-      var image2Result = TarHelper.createImage().getImage();
+      var image1Result = TarHelper.createImage();
+      var image2Result = TarHelper.createImage();
 
       storageStub.getImage.withArgs({
         project: options.project,
@@ -695,7 +695,7 @@ describe('module/check-build', function() {
       beforeEach(function() {
         storageStub.saveDiffImage = this.sinon.stub().resolves();
 
-        imageBuffer = TarHelper.createImage().getImage();
+        imageBuffer = TarHelper.createImage();
       });
 
       describe('distance greater than threshold', function() {
