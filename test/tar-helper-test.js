@@ -5,6 +5,7 @@ var PNGImage = Bluebird.promisifyAll(require('pngjs-image'));
 var fs = Bluebird.promisifyAll(require('fs-extra'));
 var uuid = require('node-uuid');
 var path = require('path');
+var ReadableStream = require('stream').Readable;
 
 var TarHelper = require('../server/utils/tar-helper');
 var dirHelper = require('../server/utils/dir-helper');
@@ -121,6 +122,24 @@ describe('module/tar-helper', function() {
         assert.include(files, path.join(browser, 'homepage.search.1300.png'));
         assert.include(files, path.join(browser, 'homepage.search.700.png'));
       });
+    });
+  });
+
+  describe('#imageData', function() {
+    it('should accept a stream and return a buffer', function() {
+      var data1 = 'this is input';
+      var data2 = 'this is more input';
+
+      var stream = new ReadableStream();
+      stream.push(data1);
+      stream.push(data2);
+      stream.push(null);
+
+      return TarHelper.imageData(stream)
+      .then(function(result) {
+        assert.instanceOf(result, Buffer);
+        assert.strictEqual(data1 + data2, result.toString());
+      })
     });
   });
 });
