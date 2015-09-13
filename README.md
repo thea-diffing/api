@@ -1,3 +1,5 @@
+# thea-api
+
 [![Build Status](https://travis-ci.org/thea-diffing/api.svg?branch=master)](https://travis-ci.org/thea-diffing/api)
 [![Coverage Status](https://coveralls.io/repos/thea-diffing/api/badge.svg?branch=master)](https://coveralls.io/r/thea-diffing/api?branch=master)
 [![Dependency Status](https://david-dm.org/thea-diffing/api.svg)](https://david-dm.org/thea-diffing/api)
